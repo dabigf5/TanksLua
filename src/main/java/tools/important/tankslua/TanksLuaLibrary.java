@@ -3,7 +3,7 @@ package tools.important.tankslua;
 import party.iroiro.luajava.Lua;
 import tanks.Game;
 
-public class TanksLuaLibrary {
+public final class TanksLuaLibrary {
     private TanksLuaLibrary(){}
 
     /**

@@ -7,7 +7,7 @@ import party.iroiro.luajava.value.LuaValue;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SafeLuaRunner {
+public final class SafeLuaRunner {
     private SafeLuaRunner(){}
     public static boolean autoLogErrors = true;
     public static Lua defaultState;
