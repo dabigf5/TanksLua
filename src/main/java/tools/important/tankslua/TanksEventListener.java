@@ -39,12 +39,12 @@ public class TanksEventListener {
 
     private final HashMap<String, SafeLuaRunner.TableType> LEVEL_TABLE_TYPES = new HashMap<>();
     private void onScreenChanged(Screen oldScreen, Screen newScreen) {
+        if (!(boolean)TanksLua.tanksLua.options.get("enableLevelScripts")) return;
         if (!(newScreen instanceof ScreenGame sg)) return;
         String rawName = sg.name;
         if (rawName == null) return;
 
         String nameNoExt = rawName.substring(0, rawName.length()-6);
-
         String levelLuaFileName = nameNoExt+".lua";
         String levelLuaFilePath = TanksLua.fullScriptPath+"/level/"+levelLuaFileName;
         File levelLuaFile = new File(levelLuaFilePath);
