@@ -74,10 +74,6 @@ public final class TanksLua extends Extension {
 
         LuaExtension.registerExtensionsFromDir();
 
-//        new Notification(Notification.NotificationType.INFO, 2.5, "Notification but you barely have enough time to read it");
-//        new Notification(Notification.NotificationType.INFO, 5, "Notification");
-//        new Notification(Notification.NotificationType.INFO, 10, "Notification, but longer this time");
-
         Screen screen = Game.screen;
         enterLuaOptionsButton = new Button(
                 screen.centerX,
@@ -208,9 +204,7 @@ public final class TanksLua extends Extension {
 
         eventListener.onDraw();
 
-        if (drawExtraMouseTarget) {
-            Panel.panel.drawMouseTarget();
-        }
+        if (drawExtraMouseTarget) Panel.panel.drawMouseTarget();
     }
 
     @Override
@@ -233,6 +227,7 @@ public final class TanksLua extends Extension {
         for (Notification notif: notificationsMarkedForRemoval) {
             activeNotifications.remove(notif);
         }
+
         notificationsMarkedForRemoval.clear();
     }
 
