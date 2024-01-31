@@ -8,6 +8,9 @@ import tanks.gui.screen.Screen;
 import java.awt.*;
 import java.util.HashMap;
 
+/**
+ * A class used to send the player a notification.
+ */
 public class Notification {
     private int index;
     public double totalSeconds;
@@ -18,6 +21,13 @@ public class Notification {
         WARN
     }
     public NotificationType type;
+
+    /**
+     * Constructing a Notification will immediately cause that notification to pop up on the player's screen.
+     * @param notificationType The type of notification. This changes the color of the notification as well as the sound played.
+     * @param seconds The amount of seconds the notification will stay active.
+     * @param text The text of the notification
+     */
     public Notification(NotificationType notificationType, double seconds, String text) {
         this.type = notificationType;
         this.secondsLeft = seconds;

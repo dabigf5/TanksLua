@@ -17,6 +17,13 @@ public abstract class LuaScript {
     public String formatVerifyErrorMessage(String fileName, String problem) {
         return fileName+": "+problem;
     }
+
+    /**
+     * Initializes a LuaScript, and properly checks its table.
+     * @param fileName The name of the file you're loading the LuaScript from
+     * @param table The table returned by the file.
+     * @param tableTypes The proper types of the table.
+     */
     public LuaScript(String fileName, LuaValue table, HashMap<String, TableType> tableTypes) {
         this.fileName = fileName;
 
@@ -27,6 +34,12 @@ public abstract class LuaScript {
         }
     }
 
+    /**
+     * Verify that a table, for one, is a table, and for two, has all of the proper values the table should have.
+     * @param tableToVerify The table you wish to verify.
+     * @param tableTypes A HashMap describing what types the table's keys should be.
+     * @return A record that describes how the verification went. If verified is true, then message will be null.
+     */
     private static VerificationResult verifyTable(LuaValue tableToVerify, HashMap<String, TableType> tableTypes) {
         if (tableToVerify.type() != Lua.LuaType.TABLE) {
             return new VerificationResult(false, "Table given is of wrong type");
