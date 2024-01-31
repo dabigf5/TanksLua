@@ -26,3 +26,13 @@
 /target/classes/tools/important/tankslua/TanksLuaLibrary.class
 /target/classes/tools/important/tankslua/gui/ToggleOptionButton.class
 /.idea/uiDesigner.xml
+/target/classes/tools/important/tankslua/luacompatible/LuaCompatible.class
+/target/classes/tools/important/tankslua/luacompatible/LuaCompatibleArrayList.class
+/target/classes/tools/important/tankslua/luacompatible/LuaCompatibleHashMap.class
+/target/classes/tools/important/tankslua/Notification$NotificationType.class
+/target/classes/tools/important/tankslua/Notification.class
+/target/classes/tools/important/tankslua/SafeLuaRunner$TableType.class
+/target/classes/tools/important/tankslua/SafeLuaRunner$VerificationResult.class
+/target/classes/tools/important/tankslua/gui/screen/ScreenOptionsLuaExtensionAbout.class
+/target/classes/tools/important/tankslua/TanksLib.class
+/.idea/vcs.xml
