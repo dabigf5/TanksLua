@@ -18,9 +18,11 @@ public final class LuaExtension extends LuaScript {
 
 
     public String fileName;
-
+    @LuaNillable
     public LuaValue fOnLoad;
+    @LuaNillable
     public LuaValue fOnUpdate;
+    @LuaNillable
     public LuaValue fOnDraw;
     public boolean enabled;
 

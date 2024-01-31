@@ -2,7 +2,6 @@ package tools.important.tankslua;
 
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.value.LuaValue;
-import tanks.gui.screen.ScreenGame;
 
 import java.io.File;
 import java.util.HashMap;
@@ -15,13 +14,22 @@ public final class LevelScript extends LuaScript {
         LEVEL_TABLE_TYPES.put("onUpdate",    new LuaScript.TableType(Lua.LuaType.FUNCTION, true));
         LEVEL_TABLE_TYPES.put("onDraw",      new LuaScript.TableType(Lua.LuaType.FUNCTION, true));
     }
+
+    @LuaNillable
     public LuaValue fOnLoad;
+    @LuaNillable
     public LuaValue fOnUpdate;
+    @LuaNillable
     public LuaValue fOnDraw;
+
     public LevelScript(LuaValue tLevel, String fileName) {
         super(fileName, tLevel, LEVEL_TABLE_TYPES);
-        this.fOnLoad = tLevel.get("onLoad");
+
         this.fileName = fileName;
+        this.fOnLoad = tLevel.get("onLoad");
+
+
+
     }
     public static LevelScript currentLevelScript;
     public static void tryLoadingLevelScript(String rawName) {
