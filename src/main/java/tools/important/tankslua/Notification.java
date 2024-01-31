@@ -5,6 +5,9 @@ import tanks.Game;
 import tanks.Panel;
 import tanks.gui.screen.Screen;
 
+import java.awt.*;
+import java.util.HashMap;
+
 public class Notification {
     private int index;
     public double totalSeconds;
@@ -25,10 +28,18 @@ public class Notification {
         this.index = TanksLua.tanksLua.activeNotifications.size();
 
         if (Game.game.window == null) return;
-        Drawing.drawing.playSound("join.ogg", 1.5f);
+        switch(this.type) {
+            case INFO -> Drawing.drawing.playSound("join.ogg", 1.5f);
+            case WARN -> Drawing.drawing.playSound("leave.ogg", 1.25f);
+        }
+
     }
     private boolean markedForRemoval;
-
+    private static final HashMap<NotificationType, Color> typeBackgroundColors = new HashMap<>();
+    static {
+        typeBackgroundColors.put(NotificationType.INFO, new Color(255,255,255));
+        typeBackgroundColors.put(NotificationType.WARN, new Color(255, 215, 118));
+    }
     private void markForRemoval() {
         markedForRemoval = true;
         TanksLua.tanksLua.notificationsMarkedForRemoval.add(this);
@@ -46,7 +57,14 @@ public class Notification {
         Screen screen = Game.screen;
 
         double alpha = Math.min(notifRemovalProgress*255, 255);
-        Drawing.drawing.setColor(255,255,255, alpha);
+        Color color = typeBackgroundColors.get(this.type);
+
+        int r = color.getRed();
+        int g = color.getGreen();
+        int b = color.getBlue();
+
+
+        Drawing.drawing.setColor(r,g,b,alpha);
 
         double width = screen.objWidth*1.3;
         double height = screen.objHeight*3;
@@ -60,7 +78,7 @@ public class Notification {
         Drawing.drawing.setInterfaceFontSize(screen.titleSize/(this.text.length()/23d));
         Drawing.drawing.displayInterfaceText(x, y, this.text);
 
-        Drawing.drawing.setColor(100*notifRemovalProgress,255*notifRemovalProgress,0, alpha*1.3);
+        Drawing.drawing.setColor(r*0.6,g*0.9,b*0.6, alpha*1.3);
         double progressBarHeight = height/20;
 
         Drawing.drawing.fillInterfaceProgressRect(x, y-(height/2)+(progressBarHeight/2), width, progressBarHeight, notifRemovalProgress);
