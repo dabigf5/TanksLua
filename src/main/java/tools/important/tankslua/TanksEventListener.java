@@ -1,6 +1,7 @@
 package tools.important.tankslua;
 
 import party.iroiro.luajava.Lua;
+import party.iroiro.luajava.value.LuaValue;
 import tanks.Game;
 import tanks.gui.screen.Screen;
 
@@ -16,7 +17,20 @@ public class TanksEventListener {
         }
 
         lastScreen = Game.screen;
-        Lua defaultState = SafeLuaRunner.defaultState;
+
+        for (LuaExtension luaext: TanksLua.tanksLua.loadedLuaExtensions) {
+            LuaValue fOnUpdate = luaext.fOnUpdate;
+            if (fOnUpdate.type() == Lua.LuaType.NIL) return;
+            SafeLuaRunner.safeCall(fOnUpdate);
+        }
+    }
+
+    public void onDraw() {
+        for (LuaExtension luaext: TanksLua.tanksLua.loadedLuaExtensions) {
+            LuaValue fOnDraw = luaext.fOnDraw;
+            if (fOnDraw.type() == Lua.LuaType.NIL) return;
+            SafeLuaRunner.safeCall(fOnDraw);
+        }
     }
 
     private void onScreenChanged(Screen oldScreen, Screen newScreen) {

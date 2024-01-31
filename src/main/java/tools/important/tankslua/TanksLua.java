@@ -206,6 +206,7 @@ public final class TanksLua extends Extension {
             drawExtraMouseTarget = true;
         }
 
+        eventListener.onDraw();
 
         if (drawExtraMouseTarget) {
             Panel.panel.drawMouseTarget();

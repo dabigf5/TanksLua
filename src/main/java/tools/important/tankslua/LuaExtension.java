@@ -20,6 +20,9 @@ public final class LuaExtension {
     public String fileName;
 
     public LuaValue fOnLoad;
+    public LuaValue fOnUpdate;
+    public LuaValue fOnDraw;
+    public boolean enabled;
 
     public LuaExtension(LuaValue tExtension, String fileName) {
         SafeLuaRunner.VerificationResult result = SafeLuaRunner.verifyTable(tExtension, EXTENSION_TABLE_TYPES);
@@ -50,11 +53,16 @@ public final class LuaExtension {
             throw new LuaException("extension "+fileName+" failed to verify: "+e.getMessage());
         }
         this.fOnLoad = tExtension.get("onLoad");
+        this.fOnUpdate = tExtension.get("onUpdate");
+        this.fOnDraw = tExtension.get("onDraw");
 
         System.out.println("successfully loaded extension \""+name+"\" by "+authorName+" ["+fileName+"]");
     }
     public String getVersionString() {
         return versionMajor +"."+ versionMinor +"."+ versionPatch;
+    }
+    public String getFullPath() {
+        return TanksLua.fullScriptPath+"/extensions/"+fileName;
     }
 
     private static int verifyAndConvertVersionNumber(double versionNumber) {
@@ -126,7 +134,10 @@ public final class LuaExtension {
 
                 TanksLua.tanksLua.loadedLuaExtensions.add(extension);
 
-                SafeLuaRunner.UserCallResult onLoadResult = SafeLuaRunner.safeCall(extension.fOnLoad);
+                LuaValue fOnLoad = extension.fOnLoad;
+                if (fOnLoad.type() == Lua.LuaType.NIL) return;
+
+                SafeLuaRunner.UserCallResult onLoadResult = SafeLuaRunner.safeCall(fOnLoad);
 
                 if (onLoadResult.status() != Lua.LuaError.OK) {
                     System.out.println("extension "+extension.fileName+": onLoad ran into an error ");
@@ -147,6 +158,8 @@ public final class LuaExtension {
         EXTENSION_TABLE_TYPES.put("versionMinor",   new SafeLuaRunner.TableType(Lua.LuaType.NUMBER,      false));
         EXTENSION_TABLE_TYPES.put("versionPatch",   new SafeLuaRunner.TableType(Lua.LuaType.NUMBER,      false));
 
-        EXTENSION_TABLE_TYPES.put("onLoad",         new SafeLuaRunner.TableType(Lua.LuaType.FUNCTION,    false));
+        EXTENSION_TABLE_TYPES.put("onLoad",         new SafeLuaRunner.TableType(Lua.LuaType.FUNCTION,    true));
+        EXTENSION_TABLE_TYPES.put("onUpdate",       new SafeLuaRunner.TableType(Lua.LuaType.FUNCTION,    true));
+        EXTENSION_TABLE_TYPES.put("onDraw",        new SafeLuaRunner.TableType(Lua.LuaType.FUNCTION,     true));
     }
 }
