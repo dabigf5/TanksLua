@@ -4,6 +4,9 @@ import party.iroiro.luajava.Consts;
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.value.LuaValue;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class SafeLuaRunner {
     private SafeLuaRunner(){}
     public static boolean autoLogErrors = true;
@@ -79,11 +82,11 @@ public class SafeLuaRunner {
      * @param filePathToLoad The path to the lua file you wish to load.
      * @return The function loaded from the lua file, or null if the load failed
      */
-    public static LuaValue loadFileAndHandleSyntaxErrors(String filePathToLoad) {
-        return loadFileAndHandleSyntaxErrors(defaultState, filePathToLoad);
+    public static LuaValue safeLoadFile(String filePathToLoad) {
+        return safeLoadFile(defaultState, filePathToLoad);
     }
-    private static LuaValue loadFileAndHandleSyntaxErrors(Lua luaState, String filePathToLoad) {
-        return loadFileAndHandleSyntaxErrors(luaState, filePathToLoad, null);
+    private static LuaValue safeLoadFile(Lua luaState, String filePathToLoad) {
+        return safeLoadFile(luaState, filePathToLoad, null);
     }
 
     /**
@@ -93,7 +96,7 @@ public class SafeLuaRunner {
      * @param tEnv The environment to load the file in. Can be null.
      * @return The function loaded from the lua file, or null if the load failed
      */
-    public static LuaValue loadFileAndHandleSyntaxErrors(Lua luaState, String filePathToLoad, LuaValue tEnv) {
+    public static LuaValue safeLoadFile(Lua luaState, String filePathToLoad, LuaValue tEnv) {
         return safeCallLoadFunc(luaState, "loadfile", filePathToLoad, tEnv);
     }
 
@@ -126,9 +129,42 @@ public class SafeLuaRunner {
 
         LuaValue fLoadedString = loadResult[0];
         if (fLoadedString.type() == Lua.LuaType.NIL) {
-            System.out.println("Lua: Syntax error! "+loadResult[1].toJavaObject());
+            System.out.println("Lua: Error loading! "+loadResult[1].toJavaObject());
             return null;
         }
         return fLoadedString;
+    }
+
+    public record TableType(Lua.LuaType type, boolean optional) {}
+    public record VerificationResult(boolean verified, String message) {
+        private VerificationResult(boolean verified) {this(verified, null);}
+    }
+    public static VerificationResult verifyTable(LuaValue tableToVerify, HashMap<String, TableType> tableTypes) {
+        if (tableToVerify.type() != Lua.LuaType.TABLE) {
+            return new VerificationResult(false, "Table given is of wrong type");
+        }
+
+        for (Map.Entry<String, TableType> typeEntry : tableTypes.entrySet()) {
+            String name = typeEntry.getKey();
+            TableType type = typeEntry.getValue();
+            Lua.LuaType luatype = type.type();
+            boolean isOptional = type.optional();
+
+            LuaValue entry = tableToVerify.get(name);
+            Lua.LuaType entryType = entry.type();
+            if (entryType == Lua.LuaType.NIL) {
+                if (!isOptional) {
+                    return new VerificationResult(false, "Missing required key "+name);
+                }
+
+                continue;
+            }
+
+            if (entryType != luatype) {
+                return new VerificationResult(false, "Key "+name+" is of the wrong type (expected "+luatype+", got "+entryType+")");
+            }
+        }
+
+        return new VerificationResult(true);
     }
 }

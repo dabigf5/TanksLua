@@ -16,7 +16,6 @@ import tanks.gui.screen.ScreenOptions;
 import tools.important.tankslua.gui.screen.ScreenOptionsLua;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
@@ -50,9 +49,6 @@ public final class TanksLua extends Extension {
 
     @Override
     public void loadResources() {
-        for (LuaExtension luaExtension: loadedLuaExtensions) {
-            SafeLuaRunner.safeCall(luaExtension.table().get("register"));
-        }
     }
 
     @Override
@@ -64,101 +60,13 @@ public final class TanksLua extends Extension {
         coreLuaState = new Lua54();
         coreLuaState.openLibraries();
 
-        coreLuaState.getGlobal("io");
-        int ioIndex = coreLuaState.getTop();
-
-        coreLuaState.push("scandir");
-        coreLuaState.push((luaState) -> {
-            int args = luaState.getTop();
-            if (args != 1) {
-                throw new LuaException("Incorrect number of arguments for io.scandir!");
-            }
-
-            if (!luaState.isString(1)) {
-                throw new LuaException("Argument passed to scandir is not a string!");
-            }
-
-            String nameOfDirToScan = luaState.toString(1);
-
-            File directory = new File(fullScriptPath+"/"+nameOfDirToScan);
-
-            if (!directory.exists()) {
-                luaState.pushNil();
-                luaState.push("Requested directory does not exist");
-                return 2;
-            }
-
-            File[] files = directory.listFiles();
-
-            assert files != null;
-
-            luaState.createTable(files.length, 0);
-            int tableStackIndex = luaState.getTop();
-
-            for (int i = 0; i < files.length; i++) {
-                File file = files[i];
-                luaState.push(i+1); // lua is 1-based
-                luaState.push(file.getName());
-                luaState.setTable(tableStackIndex);
-            }
-
-            // table is on top of the stack here
-            return 1;
-        });
-
-        coreLuaState.setTable(ioIndex);
         SafeLuaRunner.defaultState = coreLuaState;
-
-        coreLuaState.push(luaState -> {
-            int args = luaState.getTop();
-            if (args != 1) {
-                luaState.pushNil();
-                return 1;
-            }
-
-            if (!luaState.isString(1)) {
-                throw new LuaException("Argument passed to require is not a string!");
-            }
-
-            String module = luaState.toString(1);
-            assert module != null;
-            String modulePath = module.replace('.', '/');
-
-            LuaValue fLoadedFile = SafeLuaRunner.loadFileAndHandleSyntaxErrors(fullScriptPath+"/"+modulePath+".lua");
-
-            if (fLoadedFile == null) {
-                throw new LuaException("Requested module ran into an error while loading");
-            }
-
-            SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(false,fLoadedFile);
-            int returnCount = result.unpoppedReturns();
-            if (result.status() != Lua.LuaError.OK) {
-                for (int i = 1; i < returnCount; i++) {
-                    luaState.pop(i);
-                }
-                throw new LuaException("Requested module ran into an error when calling");
-            }
-
-            return returnCount;
-        });
-        coreLuaState.setGlobal("require");
 
         loadOptions();
         eventListener = new TanksEventListener();
+        TanksLuaLibrary.loadTanksLibrary(coreLuaState);
 
-        TanksLuaLibrary.loadTanksLib(coreLuaState);
-
-        // execute main.lua
-        LuaValue fLoadedMain = SafeLuaRunner.loadFileAndHandleSyntaxErrors(fullScriptPath+"/main.lua");
-        if (fLoadedMain == null) {
-            throw new LuaException("main.lua failed to load!");
-        }
-
-        SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(fLoadedMain);
-
-        if (result.status() != Lua.LuaError.OK) {
-            throw new LuaException("main.lua ran into an error!");
-        }
+        LuaExtension.registerExtensionsFromDir();
 
         Screen screen = Game.screen;
         enterLuaOptionsButton = new Button(
