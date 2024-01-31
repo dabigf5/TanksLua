@@ -9,9 +9,6 @@ import java.util.Map;
 
 public abstract class LuaScript {
     public String fileName;
-    public LuaValue fOnLoad;
-    public LuaValue fOnUpdate;
-    public LuaValue fOnDraw;
 
     protected LuaScript() {} // for debugging purposes
     public String formatVerifyErrorMessage(String fileName, String problem) {
