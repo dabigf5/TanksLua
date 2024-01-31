@@ -33,7 +33,7 @@ public class Notification {
     public void update() {
         if (markedForRemoval) return;
         index = TanksLua.tanksLua.activeNotifications.indexOf(this)+1;
-        secondsLeft -= Math.min(0.01, Panel.frameFrequency/35);
+        secondsLeft -= Math.min(0.01, Panel.frameFrequency/125);
         if (secondsLeft <= 0) markForRemoval();
     }
     public void draw() {

@@ -70,13 +70,13 @@ public final class TanksLua extends Extension {
 
         loadOptions();
         eventListener = new TanksEventListener();
-        TanksLuaLibrary.loadTanksLibrary(coreLuaState);
+        TanksLib.loadTanksLibrary(coreLuaState);
 
         LuaExtension.registerExtensionsFromDir();
 
-        new Notification(Notification.NotificationType.INFO, 2.5, "Notification but you barely have enough time to read it");
-        new Notification(Notification.NotificationType.INFO, 5, "Notification");
-        new Notification(Notification.NotificationType.INFO, 10, "Notification, but longer this time");
+//        new Notification(Notification.NotificationType.INFO, 2.5, "Notification but you barely have enough time to read it");
+//        new Notification(Notification.NotificationType.INFO, 5, "Notification");
+//        new Notification(Notification.NotificationType.INFO, 10, "Notification, but longer this time");
 
         Screen screen = Game.screen;
         enterLuaOptionsButton = new Button(
