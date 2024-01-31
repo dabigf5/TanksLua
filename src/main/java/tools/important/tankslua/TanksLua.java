@@ -14,6 +14,8 @@ import tanks.gui.TextBox;
 import tanks.gui.screen.Screen;
 import tanks.gui.screen.ScreenOptions;
 import tools.important.tankslua.gui.screen.ScreenOptionsLua;
+import tools.important.tankslua.luacompatible.LuaCompatibleArrayList;
+import tools.important.tankslua.luacompatible.LuaCompatibleHashMap;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;

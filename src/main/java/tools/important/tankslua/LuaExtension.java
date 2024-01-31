@@ -125,6 +125,12 @@ public final class LuaExtension {
                 LuaExtension extension = new LuaExtension(returns[0], fileName);
 
                 TanksLua.tanksLua.loadedLuaExtensions.add(extension);
+
+                SafeLuaRunner.UserCallResult onLoadResult = SafeLuaRunner.safeCall(extension.fOnLoad);
+
+                if (onLoadResult.status() != Lua.LuaError.OK) {
+                    System.out.println("extension "+extension.fileName+": onLoad ran into an error ");
+                }
             }
         } catch (LuaException exception) {
             System.out.println(exception.getMessage());

@@ -1,4 +1,4 @@
-package tools.important.tankslua;
+package tools.important.tankslua.luacompatible;
 
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.value.LuaValue;
