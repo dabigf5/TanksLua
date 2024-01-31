@@ -1,6 +1,7 @@
 package tools.important.tankslua;
 
 import party.iroiro.luajava.Lua;
+import party.iroiro.luajava.LuaException;
 import party.iroiro.luajava.value.LuaValue;
 
 import java.io.File;
@@ -27,7 +28,6 @@ public final class LevelScript extends LuaScript {
 
         this.fileName = fileName;
         this.fOnLoad = tLevel.get("onLoad");
-
 
 
     }
@@ -62,7 +62,11 @@ public final class LevelScript extends LuaScript {
         }
 
         LuaValue tLevel = returns[0];
-
-        currentLevelScript = new LevelScript(tLevel, levelLuaFileName);
+        try {
+            currentLevelScript = new LevelScript(tLevel, levelLuaFileName);
+        } catch (LuaException luaException) {
+            System.out.println(luaException.getMessage());
+            new Notification(Notification.NotificationType.WARN,errNotifTime, levelLuaFileName+" failed to verify! See logs for more info");
+        }
     }
 }

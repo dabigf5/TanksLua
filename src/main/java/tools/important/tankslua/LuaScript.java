@@ -11,8 +11,8 @@ public abstract class LuaScript {
     public String fileName;
 
     protected LuaScript() {} // for debugging purposes
-    public String formatVerifyErrorMessage(String fileName, String problem) {
-        return fileName+": "+problem;
+    public void onVerificationError(String fileName, String problem) {
+        System.out.println(fileName+": "+problem);
     }
 
     /**
@@ -27,7 +27,8 @@ public abstract class LuaScript {
         VerificationResult verificationResult = verifyTable(table, tableTypes);
 
         if (!verificationResult.verified()) {
-            throw new LuaException(formatVerifyErrorMessage(fileName, verificationResult.message()));
+            onVerificationError(fileName, verificationResult.message());
+            throw new LuaException(fileName+": "+verificationResult.message());
         }
     }
 
