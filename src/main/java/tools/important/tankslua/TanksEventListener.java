@@ -13,6 +13,11 @@ public class TanksEventListener {
         if (lastScreen != Game.screen) {
             onScreenChanged(lastScreen, Game.screen);
         }
+        LevelScript currentLevelScript = LevelScript.currentLevelScript;
+        if (currentLevelScript != null) {
+            LuaValue fOnUpdate = currentLevelScript.fOnUpdate;
+            if (fOnUpdate.type() != Lua.LuaType.NIL) SafeLuaRunner.safeCall(fOnUpdate);
+        }
 
         lastScreen = Game.screen;
 
@@ -24,6 +29,12 @@ public class TanksEventListener {
     }
 
     public void onDraw() {
+        LevelScript currentLevelScript = LevelScript.currentLevelScript;
+        if (currentLevelScript != null) {
+            LuaValue fOnDraw = currentLevelScript.fOnDraw;
+            if (fOnDraw.type() != Lua.LuaType.NIL) SafeLuaRunner.safeCall(fOnDraw);
+        }
+
         for (LuaExtension luaext: TanksLua.tanksLua.loadedLuaExtensions) {
             LuaValue fOnDraw = luaext.fOnDraw;
             if (fOnDraw.type() == Lua.LuaType.NIL) return;
@@ -34,5 +45,7 @@ public class TanksEventListener {
     private void onScreenChanged(Screen oldScreen, Screen newScreen) {
         if ((boolean) TanksLua.tanksLua.options.get("enableLevelScripts") && newScreen instanceof ScreenGame sg)
             LevelScript.tryLoadingLevelScript(sg.name);
+
+        if (oldScreen instanceof ScreenGame) LevelScript.currentLevelScript = null;
     }
 }

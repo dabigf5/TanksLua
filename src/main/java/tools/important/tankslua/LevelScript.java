@@ -28,8 +28,8 @@ public final class LevelScript extends LuaScript {
 
         this.fileName = fileName;
         this.fOnLoad = tLevel.get("onLoad");
-
-
+        this.fOnUpdate = tLevel.get("onUpdate");
+        this.fOnDraw = tLevel.get("onDraw");
     }
     public static LevelScript currentLevelScript;
     public static void tryLoadingLevelScript(String rawName) {
