@@ -55,17 +55,5 @@ public class ScreenOptionsLuaExtensionList extends Screen {
         backButton.draw();
         reloadExtensionsButton.draw();
         extensionButtonList.draw();
-/*        ArrayList<LuaExtension> extList = TanksLua.tanksLua.loadedLuaExtensions;
-
-        for (int i = 0; i < extList.size(); i++) {
-            LuaExtension lx = extList.get(i);
-            final double baseX = centerX;
-            final double baseY = (centerY/2) + (objHeight*(i*1.2));
-            Drawing.drawing.setInterfaceFontSize(titleSize*0.8);
-            Drawing.drawing.displayInterfaceText(baseX, baseY, lx.name);
-            Drawing.drawing.setInterfaceFontSize(titleSize*0.5);
-            Drawing.drawing.displayInterfaceText(baseX, baseY+(objHeight/2),"by "+lx.authorName);
-        }*/
     }
-    
 }
