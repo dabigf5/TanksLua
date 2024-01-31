@@ -20,6 +20,7 @@ import tools.important.tankslua.luacompatible.LuaCompatibleHashMap;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,6 +46,9 @@ public final class TanksLua extends Extension {
     public Button enterLuaOptionsButton;
     public TanksEventListener eventListener;
 
+    public ArrayList<Notification> activeNotifications = new ArrayList<>();
+    ArrayList<Notification> notificationsMarkedForRemoval = new ArrayList<>();
+
     public TanksLua() {
         super("TanksLua");
     }
@@ -69,6 +73,10 @@ public final class TanksLua extends Extension {
         TanksLuaLibrary.loadTanksLibrary(coreLuaState);
 
         LuaExtension.registerExtensionsFromDir();
+
+        new Notification(Notification.NotificationType.INFO, 2.5, "Notification but you barely have enough time to read it");
+        new Notification(Notification.NotificationType.INFO, 5, "Notification");
+        new Notification(Notification.NotificationType.INFO, 10, "Notification, but longer this time");
 
         Screen screen = Game.screen;
         enterLuaOptionsButton = new Button(
@@ -193,6 +201,10 @@ public final class TanksLua extends Extension {
             evalRunButton.draw();
         }
 
+        for (Notification notif: activeNotifications) {
+            notif.draw();
+            drawExtraMouseTarget = true;
+        }
 
 
         if (drawExtraMouseTarget) {
@@ -212,6 +224,15 @@ public final class TanksLua extends Extension {
             evalCodeBox.update();
             evalRunButton.update();
         }
+
+        for (Notification notif: activeNotifications) {
+            notif.update();
+        }
+
+        for (Notification notif: notificationsMarkedForRemoval) {
+            activeNotifications.remove(notif);
+        }
+        notificationsMarkedForRemoval.clear();
     }
 
     public static void main(String[] args) {
