@@ -30,7 +30,7 @@ public final class TanksLua extends Extension {
     public static final String scriptPath = Game.directoryPath+"/scripts";
     public static final String fullScriptPath = System.getProperty("user.home").replace('\\', '/')+scriptPath;
     private static final boolean enableEvalBox = false;
-    public Lua54 coreLuaState;
+    public Lua coreLuaState;
     public LuaCompatibleHashMap<String, Object> options;
     public LuaCompatibleArrayList<LuaExtension> loadedLuaExtensions;
     public static final HashMap<String, Lua.LuaType> optionTypes = new HashMap<>();

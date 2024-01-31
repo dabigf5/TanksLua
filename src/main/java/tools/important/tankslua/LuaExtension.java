@@ -7,7 +7,7 @@ import party.iroiro.luajava.value.LuaValue;
 import java.io.File;
 import java.util.HashMap;
 
-public final class LuaExtension {
+public final class LuaExtension extends LuaScript {
     public String name;
     public String authorName;
     public String description;
@@ -24,12 +24,13 @@ public final class LuaExtension {
     public LuaValue fOnDraw;
     public boolean enabled;
 
-    public LuaExtension(LuaValue tExtension, String fileName) {
-        SafeLuaRunner.VerificationResult result = SafeLuaRunner.verifyTable(tExtension, EXTENSION_TABLE_TYPES);
+    @Override
+    public String formatVerifyErrorMessage(String fileName, String problem) {
+        return "Extension "+fileName+" failed to verify: "+problem;
+    }
 
-        if (!result.verified()) {
-            throw new LuaException("extension "+fileName+" failed to verify: "+result.message());
-        }
+    public LuaExtension(LuaValue tExtension, String fileName) {
+        super(fileName, tExtension, EXTENSION_TABLE_TYPES);
 
         this.name = (String) tExtension.get("name").toJavaObject();
         this.authorName = (String) tExtension.get("authorName").toJavaObject();
@@ -78,6 +79,7 @@ public final class LuaExtension {
 
     @SuppressWarnings("unused")
     private LuaExtension(String name, String authorName, String fileName) { // for testing purposes only
+        super();
         this.name = name;
         this.authorName = authorName;
         this.fileName = fileName;
@@ -115,6 +117,7 @@ public final class LuaExtension {
                 LuaValue[] loadFileResult = fLoadFile.call(file.getAbsolutePath());
 
                 if (loadFileResult.length == 2) {
+                    new Notification(Notification.NotificationType.WARN, 5, "Error loading extension "+fileName+"! See log for details");
                     throw new LuaException("error loading extension " + fileName + ": " + loadFileResult[1].toJavaObject());
                 }
 
@@ -122,11 +125,13 @@ public final class LuaExtension {
                 SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(fLoadedFile);
 
                 if (result.status() != Lua.LuaError.OK) {
+                    new Notification(Notification.NotificationType.WARN, 5, "Error running extension "+fileName+"! See log for details");
                     throw new LuaException("error running extension " + fileName + ": " + loadFileResult[0]);
                 }
 
                 LuaValue[] returns = result.returns();
                 if (returns.length != 1) {
+                    new Notification(Notification.NotificationType.WARN, 5, "Extension "+fileName+" did not return exactly one value!");
                     throw new LuaException("extension " + fileName + " did not return exactly one value");
                 }
 
@@ -148,18 +153,18 @@ public final class LuaExtension {
         }
     }
 
-    private static final HashMap<String, SafeLuaRunner.TableType> EXTENSION_TABLE_TYPES = new HashMap<>();
+    private static final HashMap<String, LuaScript.TableType> EXTENSION_TABLE_TYPES = new HashMap<>();
     static {
-        EXTENSION_TABLE_TYPES.put("name",           new SafeLuaRunner.TableType(Lua.LuaType.STRING,      false));
-        EXTENSION_TABLE_TYPES.put("authorName",     new SafeLuaRunner.TableType(Lua.LuaType.STRING,      false));
-        EXTENSION_TABLE_TYPES.put("description",    new SafeLuaRunner.TableType(Lua.LuaType.STRING,      true));
+        EXTENSION_TABLE_TYPES.put("name",           new LuaScript.TableType(Lua.LuaType.STRING,      false));
+        EXTENSION_TABLE_TYPES.put("authorName",     new LuaScript.TableType(Lua.LuaType.STRING,      false));
+        EXTENSION_TABLE_TYPES.put("description",    new LuaScript.TableType(Lua.LuaType.STRING,      true));
 
-        EXTENSION_TABLE_TYPES.put("versionMajor",   new SafeLuaRunner.TableType(Lua.LuaType.NUMBER,      false));
-        EXTENSION_TABLE_TYPES.put("versionMinor",   new SafeLuaRunner.TableType(Lua.LuaType.NUMBER,      false));
-        EXTENSION_TABLE_TYPES.put("versionPatch",   new SafeLuaRunner.TableType(Lua.LuaType.NUMBER,      false));
+        EXTENSION_TABLE_TYPES.put("versionMajor",   new LuaScript.TableType(Lua.LuaType.NUMBER,      false));
+        EXTENSION_TABLE_TYPES.put("versionMinor",   new LuaScript.TableType(Lua.LuaType.NUMBER,      false));
+        EXTENSION_TABLE_TYPES.put("versionPatch",   new LuaScript.TableType(Lua.LuaType.NUMBER,      false));
 
-        EXTENSION_TABLE_TYPES.put("onLoad",         new SafeLuaRunner.TableType(Lua.LuaType.FUNCTION,    true));
-        EXTENSION_TABLE_TYPES.put("onUpdate",       new SafeLuaRunner.TableType(Lua.LuaType.FUNCTION,    true));
-        EXTENSION_TABLE_TYPES.put("onDraw",        new SafeLuaRunner.TableType(Lua.LuaType.FUNCTION,     true));
+        EXTENSION_TABLE_TYPES.put("onLoad",         new LuaScript.TableType(Lua.LuaType.FUNCTION,    true));
+        EXTENSION_TABLE_TYPES.put("onUpdate",       new LuaScript.TableType(Lua.LuaType.FUNCTION,    true));
+        EXTENSION_TABLE_TYPES.put("onDraw",        new LuaScript.TableType(Lua.LuaType.FUNCTION,     true));
     }
 }
