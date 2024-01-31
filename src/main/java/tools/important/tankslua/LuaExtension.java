@@ -10,6 +10,11 @@ import java.util.HashMap;
 public final class LuaExtension {
     public String name;
     public String authorName;
+    public String description;
+
+    public int versionMajor;
+    public int versionMinor;
+    public int versionPatch;
 
 
     public String fileName;
@@ -27,14 +32,64 @@ public final class LuaExtension {
         this.authorName = (String) tExtension.get("authorName").toJavaObject();
         this.fileName = fileName;
 
+        LuaValue desc = tExtension.get("description");
+        if (desc.type() != Lua.LuaType.NIL) {
+            this.description = (String) desc.toJavaObject();
+        } else {
+            this.description = "<no description>";
+        }
+
+        try {
+            //noinspection DataFlowIssue
+            this.versionMajor = verifyAndConvertVersionNumber((double) tExtension.get("versionMajor").toJavaObject());
+            //noinspection DataFlowIssue
+            this.versionMinor = verifyAndConvertVersionNumber((double) tExtension.get("versionMinor").toJavaObject());
+            //noinspection DataFlowIssue
+            this.versionPatch = verifyAndConvertVersionNumber((double) tExtension.get("versionPatch").toJavaObject());
+        } catch(LuaException e) {
+            throw new LuaException("extension "+fileName+" failed to verify: "+e.getMessage());
+        }
         this.fOnLoad = tExtension.get("onLoad");
 
         System.out.println("successfully loaded extension \""+name+"\" by "+authorName+" ["+fileName+"]");
     }
+    public String getVersionString() {
+        return versionMajor +"."+ versionMinor +"."+ versionPatch;
+    }
+
+    private static int verifyAndConvertVersionNumber(double versionNumber) {
+        if (versionNumber % 1 != 0) {
+            throw new LuaException("non-integer version number provided");
+        }
+        if (versionNumber < 0) {
+            throw new LuaException("negative version number provided");
+        }
+
+        return (int) versionNumber;
+    }
+
+    @SuppressWarnings("unused")
+    private LuaExtension(String name, String authorName, String fileName) { // for testing purposes only
+        this.name = name;
+        this.authorName = authorName;
+        this.fileName = fileName;
+        this.description = "nil";
+
+        this.versionMajor = 0;
+        this.versionMinor = 1;
+        this.versionPatch = 0;
+    }
 
 
-
+    @SuppressWarnings({"CommentedOutCode", "RedundantSuppression"})
     public static void registerExtensionsFromDir() {
+        // only uncomment this when you must test having an absurd amount of extensions
+        /*for (int i = 0; i < 40; i++) {
+            TanksLua.tanksLua.loadedLuaExtensions.add(
+                new LuaExtension("testing extension", "testingAuthor", "fake.lua")
+            );
+        }
+        if (true) return;*/
         LuaValue fLoadFile = SafeLuaRunner.defaultState.get("loadfile");
 
         File extensionsDirectory = new File(TanksLua.fullScriptPath+"/extensions");
@@ -59,7 +114,7 @@ public final class LuaExtension {
                 SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(fLoadedFile);
 
                 if (result.status() != Lua.LuaError.OK) {
-                    throw new LuaException("error running extension " + fileName + ": " + loadFileResult[1]);
+                    throw new LuaException("error running extension " + fileName + ": " + loadFileResult[0]);
                 }
 
                 LuaValue[] returns = result.returns();
@@ -80,6 +135,11 @@ public final class LuaExtension {
     static {
         EXTENSION_TABLE_TYPES.put("name",           new SafeLuaRunner.TableType(Lua.LuaType.STRING,      false));
         EXTENSION_TABLE_TYPES.put("authorName",     new SafeLuaRunner.TableType(Lua.LuaType.STRING,      false));
+        EXTENSION_TABLE_TYPES.put("description",    new SafeLuaRunner.TableType(Lua.LuaType.STRING,      true));
+
+        EXTENSION_TABLE_TYPES.put("versionMajor",   new SafeLuaRunner.TableType(Lua.LuaType.NUMBER,      false));
+        EXTENSION_TABLE_TYPES.put("versionMinor",   new SafeLuaRunner.TableType(Lua.LuaType.NUMBER,      false));
+        EXTENSION_TABLE_TYPES.put("versionPatch",   new SafeLuaRunner.TableType(Lua.LuaType.NUMBER,      false));
 
         EXTENSION_TABLE_TYPES.put("onLoad",         new SafeLuaRunner.TableType(Lua.LuaType.FUNCTION,    false));
     }
