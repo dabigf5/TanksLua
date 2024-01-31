@@ -23,6 +23,9 @@ public class Notification {
 
         TanksLua.tanksLua.activeNotifications.add(this);
         this.index = TanksLua.tanksLua.activeNotifications.size();
+
+        if (Game.game.window == null) return;
+        Drawing.drawing.playSound("join.ogg", 1.5f);
     }
     private boolean markedForRemoval;
 
