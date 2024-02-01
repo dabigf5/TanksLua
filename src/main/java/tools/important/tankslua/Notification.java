@@ -6,6 +6,7 @@ import tanks.Panel;
 import tanks.gui.screen.Screen;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -96,10 +97,10 @@ public class Notification {
         double mx = Drawing.drawing.getInterfaceMouseX();
         double my = Drawing.drawing.getInterfaceMouseY();
         double mouseBoxSize = 3;
-        double x2 = x-width/2;
-        double y2 = y-height/2;
+        double xTopLeft = x-width/2;
+        double yTopLeft = y-height/2;
 
-        this.mousing = mx < x2+width && x2 < mx+mouseBoxSize && my < y2+height && y2 < my+mouseBoxSize;
+        this.mousing = mx < xTopLeft +width && xTopLeft < mx+mouseBoxSize && my < yTopLeft +height && yTopLeft < my+mouseBoxSize;
 
         if (mousing) {
             paused = true;
@@ -113,9 +114,15 @@ public class Notification {
 
         Drawing.drawing.fillInterfaceRect(x, y, width, height);
         Drawing.drawing.setColor(0,0,0, alpha);
+        double textSize = screen.titleSize*0.6;
+        Drawing.drawing.setInterfaceFontSize(textSize);
+        ArrayList<String> lines = Drawing.drawing.wrapText(text, width*0.99, textSize);
 
-        Drawing.drawing.setInterfaceFontSize(screen.titleSize/(this.text.length()/23d));
-        Drawing.drawing.displayInterfaceText(x, y, this.text);
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i);
+            double imult = (i+1);
+            Drawing.drawing.drawText(x, yTopLeft + (height*imult)/5, line);
+        }
 
 
 
