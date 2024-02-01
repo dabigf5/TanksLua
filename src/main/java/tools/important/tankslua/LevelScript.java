@@ -8,7 +8,6 @@ import java.io.File;
 import java.util.HashMap;
 
 public final class LevelScript extends LuaScript {
-    public String fileName;
     private static final HashMap<String, LuaScript.TableType> LEVEL_TABLE_TYPES = new HashMap<>();
     static {
         LEVEL_TABLE_TYPES.put("onLoad",      new LuaScript.TableType(Lua.LuaType.FUNCTION, true));

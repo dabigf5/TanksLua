@@ -15,9 +15,6 @@ public final class LuaExtension extends LuaScript {
     public int versionMajor;
     public int versionMinor;
     public int versionPatch;
-
-
-    public String fileName;
     @LuaNillable
     public LuaValue fOnLoad;
     @LuaNillable
