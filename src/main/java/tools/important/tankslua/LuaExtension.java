@@ -107,15 +107,16 @@ public final class LuaExtension extends LuaScript {
         if (true) return;*/
         LuaValue fLoadFile = SafeLuaRunner.defaultState.get("loadfile");
 
-        File extensionsDirectory = new File(TanksLua.fullScriptPath + "/extensions");
-
+        File extensionsDirectory = new File(TanksLua.fullScriptPath + "/extensions/");
         File[] extensionLuaFiles = extensionsDirectory.listFiles();
 
         assert extensionLuaFiles != null;
-        try {
-            for (File file : extensionLuaFiles) {
+        for (File file : extensionLuaFiles) {
+            try {
                 String fileName = file.getName();
+
                 if (!fileName.endsWith(".lua")) {
+                    System.out.println("cont1");
                     continue;
                 }
 
@@ -145,16 +146,16 @@ public final class LuaExtension extends LuaScript {
                 TanksLua.tanksLua.loadedLuaExtensions.add(extension);
 
                 LuaValue fOnLoad = extension.fOnLoad;
-                if (fOnLoad.type() == Lua.LuaType.NIL) return;
+                if (fOnLoad.type() == Lua.LuaType.NIL) continue;
 
                 SafeLuaRunner.UserCallResult onLoadResult = SafeLuaRunner.safeCall(fOnLoad);
 
                 if (onLoadResult.status() != Lua.LuaError.OK) {
                     System.out.println("extension " + extension.fileName + ": onLoad ran into an error ");
                 }
+            } catch (LuaException luaException) {
+                System.out.println(luaException.getMessage());
             }
-        } catch (LuaException luaException) {
-            System.out.println(luaException.getMessage());
         }
     }
 
