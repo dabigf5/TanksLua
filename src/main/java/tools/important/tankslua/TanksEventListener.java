@@ -43,8 +43,10 @@ public class TanksEventListener {
     }
 
     private void onScreenChanged(Screen oldScreen, Screen newScreen) {
-        if ((boolean) TanksLua.tanksLua.options.get("enableLevelScripts") && newScreen instanceof ScreenGame sg)
+        if ((boolean) TanksLua.tanksLua.options.get("enableLevelScripts") && newScreen instanceof ScreenGame) {
+            ScreenGame sg = ((ScreenGame) newScreen);
             LevelScript.tryLoadingLevelScript(sg.name);
+        }
 
         if (oldScreen instanceof ScreenGame && (!(newScreen instanceof ScreenGame))) LevelScript.currentLevelScript = null;
     }

@@ -125,12 +125,12 @@ public final class LuaExtension extends LuaScript {
                 LuaValue fLoadedFile = loadFileResult[0];
                 SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(fLoadedFile);
 
-                if (result.status() != Lua.LuaError.OK) {
+                if (result.status != Lua.LuaError.OK) {
                     new Notification(Notification.NotificationType.WARN, 5, "Error running extension " + fileName + "! See logs for more info");
                     throw new LuaException("error running extension " + fileName + ": " + loadFileResult[0]);
                 }
 
-                LuaValue[] returns = result.returns();
+                LuaValue[] returns = result.returns;
                 if (returns.length != 1) {
                     new Notification(Notification.NotificationType.WARN, 5, "Extension " + fileName + " did not return exactly one value!");
                     throw new LuaException("extension " + fileName + " did not return exactly one value");
@@ -145,7 +145,7 @@ public final class LuaExtension extends LuaScript {
 
                 SafeLuaRunner.UserCallResult onLoadResult = SafeLuaRunner.safeCall(fOnLoad);
 
-                if (onLoadResult.status() != Lua.LuaError.OK) {
+                if (onLoadResult.status != Lua.LuaError.OK) {
                     System.out.println("extension " + extension.fileName + ": onLoad ran into an error ");
                 }
             } catch (LuaException luaException) {

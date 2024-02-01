@@ -26,9 +26,9 @@ public abstract class LuaScript {
 
         VerificationResult verificationResult = verifyTable(table, tableTypes);
 
-        if (!verificationResult.verified()) {
-            onVerificationError(fileName, verificationResult.message());
-            throw new LuaException(fileName+": "+verificationResult.message());
+        if (!verificationResult.verified) {
+            onVerificationError(fileName, verificationResult.message);
+            throw new LuaException(fileName+": "+verificationResult.message);
         }
     }
 
@@ -46,8 +46,8 @@ public abstract class LuaScript {
         for (Map.Entry<String, TableType> typeEntry : tableTypes.entrySet()) {
             String name = typeEntry.getKey();
             TableType type = typeEntry.getValue();
-            Lua.LuaType luatype = type.type();
-            boolean isOptional = type.optional();
+            Lua.LuaType luatype = type.type;
+            boolean isOptional = type.optional;
 
             LuaValue entry = tableToVerify.get(name);
             Lua.LuaType entryType = entry.type();
@@ -67,9 +67,22 @@ public abstract class LuaScript {
         return new VerificationResult(true);
     }
 
-    public record TableType(Lua.LuaType type, boolean optional) {}
+    static class TableType {
+        public Lua.LuaType type;
+        public boolean optional;
+        public TableType(Lua.LuaType type, boolean optional) {
+            this.type = type;
+            this.optional = optional;
+        }
+    }
 
-    public record VerificationResult(boolean verified, String message) {
+    static class VerificationResult {
+        public boolean verified;
+        public String message;
+        private VerificationResult(boolean verified, String message) {
+            this.verified = verified;
+            this.message = message;
+        }
         private VerificationResult(boolean verified) {this(verified, null);}
     }
 }

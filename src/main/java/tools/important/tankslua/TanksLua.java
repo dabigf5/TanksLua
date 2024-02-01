@@ -47,7 +47,7 @@ public final class TanksLua extends Extension {
     public TanksEventListener eventListener;
 
     public ArrayList<Notification> activeNotifications = new ArrayList<>();
-    ArrayList<Notification> notificationsMarkedForRemoval = new ArrayList<>();
+
 
     public TanksLua() {
         super("TanksLua");
@@ -125,9 +125,10 @@ public final class TanksLua extends Extension {
         HashMap<Object, Object> tOptionsMap = (HashMap<Object, Object>) tOptions.toJavaObject();
         assert tOptionsMap != null;
         for (Object tKey: tOptionsMap.keySet()) {
-            if (!(tKey instanceof String optionName)) {
+            if (!(tKey instanceof String)) {
                 throw new LuaException("Key exists in options table that is not a string!");
             }
+            String optionName = (String) tKey;
             Lua.LuaType expectedType = optionTypes.get(optionName);
             if (expectedType == null) {
                 throw new LuaException("Unknown option name '"+optionName+"'!");
@@ -219,16 +220,15 @@ public final class TanksLua extends Extension {
             evalCodeBox.update();
             evalRunButton.update();
         }
+        for (int i = 0; i < activeNotifications.size(); i++) {
+            Notification notif = activeNotifications.get(i);
 
-        for (Notification notif: activeNotifications) {
             notif.update();
+            if (notif.removing) {
+                activeNotifications.remove(i);
+                i--;
+            }
         }
-
-        for (Notification notif: notificationsMarkedForRemoval) {
-            activeNotifications.remove(notif);
-        }
-
-        notificationsMarkedForRemoval.clear();
     }
 
     public static void main(String[] args) {

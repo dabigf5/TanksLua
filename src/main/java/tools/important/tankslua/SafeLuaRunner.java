@@ -60,17 +60,25 @@ public final class SafeLuaRunner {
     }
 
     /**
-     * A record which describes the result of a function call performed with safeCall.
+     * A static class which describes the result of a function call performed with safeCall.
      * The last two entries in this record are mutually exclusive. This is because a call cannot return both
      * the values it returned and leave values on the stack.
-     * @param status If the operation succeeded or failed
-     * @param returns The return values given by the function
-     * @param unpoppedReturns The returns we've pushed onto the lua stack
+    // * @param status If the operation succeeded or failed
+    // * @param returns The return values given by the function
+    // * @param unpoppedReturns The returns we've pushed onto the lua stack
      */
-    record UserCallResult(Lua.LuaError status, LuaValue[] returns, Integer unpoppedReturns){
-        public UserCallResult(Lua.LuaError status) {this(status,null,null);}
-        public UserCallResult(Lua.LuaError status, LuaValue[] returns) {this(status,returns,null);}
-        public UserCallResult(Lua.LuaError status, Integer unpoppedReturns) {this(status,null,unpoppedReturns);}
+    static class UserCallResult{
+        public Lua.LuaError status;
+        public LuaValue[] returns;
+        public int unpoppedReturns;
+        public UserCallResult(Lua.LuaError status, LuaValue[] returns, int unpoppedReturns) {
+            this.status = status;
+            this.returns = returns;
+            this.unpoppedReturns = unpoppedReturns;
+        }
+        public UserCallResult(Lua.LuaError status) {this(status,null,0);}
+        public UserCallResult(Lua.LuaError status, LuaValue[] returns) {this(status,returns,0);}
+        public UserCallResult(Lua.LuaError status, int unpoppedReturns) {this(status,null,unpoppedReturns);}
     }
     /**
      * Loads a Lua file, calls it, and properly handles any syntax errors that may occur.

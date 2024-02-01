@@ -32,7 +32,7 @@ public final class LevelScript extends LuaScript {
         if (this.fOnLoad.type() == Lua.LuaType.NIL) return;
 
         SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(this.fOnLoad);
-        if (result.status() != Lua.LuaError.OK) {
+        if (result.status != Lua.LuaError.OK) {
             new Notification(Notification.NotificationType.WARN, 5, "The level script ran into an error in onLoad!");
         }
     }
@@ -54,12 +54,12 @@ public final class LevelScript extends LuaScript {
 
         SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(loadedFile);
 
-        if (result.status() != Lua.LuaError.OK) {
+        if (result.status != Lua.LuaError.OK) {
             new Notification(Notification.NotificationType.WARN, errNotifTime, levelLuaFileName+" ran into an error when running");
             return;
         }
 
-        LuaValue[] returns = result.returns();
+        LuaValue[] returns = result.returns;
 
         if (returns.length != 1) {
             new Notification(Notification.NotificationType.WARN, errNotifTime, levelLuaFileName+" did not return exactly one value!");
