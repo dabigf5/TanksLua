@@ -39,7 +39,7 @@ public class Notification {
         this.notifIndex = TanksLua.tanksLua.activeNotifications.size();
 
         if (Game.game.window == null) return;
-        switch(this.type) { // I FUCKING DESPISE JAVA 8. WHY DO WE CARE SO MUCH ABOUT MOBILE USERS, THAT WE FORCE OURSELVES TO WRITE CODE FOR THIS WRETCHED JAVA VERSION THAT IS COMPOSED OF 50% FECES 49% URINE AND 1% C CODE
+        switch(this.type) {
             case INFO: {
                 Drawing.drawing.playSound("join.ogg", 1.5f);
                 break;
