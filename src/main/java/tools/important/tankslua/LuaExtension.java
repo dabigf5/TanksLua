@@ -23,8 +23,6 @@ public final class LuaExtension extends LuaScript {
     @LuaNillable
     public LuaValue fOnDraw;
 
-
-    public boolean enabled;
     public LuaCompatibleHashMap<String, Object> options;
     @Override
     public void onVerificationError(String fileName, String problem) {
@@ -33,10 +31,30 @@ public final class LuaExtension extends LuaScript {
     }
 
     public LuaExtension(LuaValue tExtension, String fileName) {
-        super(fileName, tExtension, EXTENSION_TABLE_TYPES);
+        super(fileName);
+        loadExtOptions();
 
-        this.name = (String) tExtension.get("name").toJavaObject();
-        this.authorName = (String) tExtension.get("authorName").toJavaObject();
+        load(tExtension);
+    }
+    public void loadExtOptions() {
+        LuaValue tExtensionsOptions = loadExtensionOptionsTable();
+        LuaValue tOurOptions = tExtensionsOptions.get(this.fileName);
+
+        System.out.println(tOurOptions.toJavaObject());
+    }
+
+    public void load() {
+        LuaValue fLoaded = SafeLuaRunner.safeLoadFile(TanksLua.fullScriptPath+this.fileName);
+
+        SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(fLoaded);
+
+        load(result.returns[0]);
+    }
+    public void load(LuaValue tExtension) {
+        super.loadTable(tExtension, EXTENSION_TABLE_TYPES);
+
+        name = (String) tExtension.get("name").toJavaObject();
+        authorName = (String) tExtension.get("authorName").toJavaObject();
 
         LuaValue desc = tExtension.get("description");
         if (desc.type() != Lua.LuaType.NIL) {
@@ -47,34 +65,19 @@ public final class LuaExtension extends LuaScript {
 
         try {
             //noinspection DataFlowIssue
-            this.versionMajor = verifyAndConvertVersionNumber((double) tExtension.get("versionMajor").toJavaObject());
+            versionMajor = verifyAndConvertVersionNumber((double) tExtension.get("versionMajor").toJavaObject());
             //noinspection DataFlowIssue
-            this.versionMinor = verifyAndConvertVersionNumber((double) tExtension.get("versionMinor").toJavaObject());
+            versionMinor = verifyAndConvertVersionNumber((double) tExtension.get("versionMinor").toJavaObject());
             //noinspection DataFlowIssue
-            this.versionPatch = verifyAndConvertVersionNumber((double) tExtension.get("versionPatch").toJavaObject());
+            versionPatch = verifyAndConvertVersionNumber((double) tExtension.get("versionPatch").toJavaObject());
         } catch (LuaException e) {
             throw new LuaException("extension " + fileName + " failed to verify: " + e.getMessage());
         }
-        this.fOnLoad = tExtension.get("onLoad");
-        this.fOnUpdate = tExtension.get("onUpdate");
-        this.fOnDraw = tExtension.get("onDraw");
-        loadOptions();
+        fOnLoad = tExtension.get("onLoad");
+        fOnUpdate = tExtension.get("onUpdate");
+        fOnDraw = tExtension.get("onDraw");
+
         System.out.println("successfully loaded extension \"" + name + "\" by " + authorName + " [" + fileName + "]");
-        System.out.println("enabled: "+enabled);
-    }
-    public void loadOptions() {
-        LuaValue tExtOptions = loadExtensionOptionsTable();
-        LuaValue tOurOptions = tExtOptions.get(this.fileName);
-
-
-        LuaValue bIsEnabled = tOurOptions.get("enabled");
-        if (bIsEnabled.type() != Lua.LuaType.BOOLEAN)
-            throw new LuaException("non-boolean being used as enabled value");
-
-        //noinspection DataFlowIssue
-        enabled = (boolean) bIsEnabled.toJavaObject();
-
-        System.out.println(tOurOptions.toJavaObject());
     }
     public String getVersionString() {
         return versionMajor + "." + versionMinor + "." + versionPatch;
@@ -180,7 +183,8 @@ public final class LuaExtension extends LuaScript {
                 TanksLua.tanksLua.loadedLuaExtensions.add(extension);
 
                 LuaValue fOnLoad = extension.fOnLoad;
-                if (fOnLoad.type() == Lua.LuaType.NIL || !extension.enabled) continue;
+
+                if (fOnLoad.type() == Lua.LuaType.NIL) continue;
 
                 SafeLuaRunner.UserCallResult onLoadResult = SafeLuaRunner.safeCall(fOnLoad);
 

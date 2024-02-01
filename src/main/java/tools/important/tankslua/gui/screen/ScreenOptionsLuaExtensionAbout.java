@@ -5,13 +5,18 @@ import tanks.Game;
 import tanks.gui.Button;
 import tanks.gui.screen.Screen;
 import tools.important.tankslua.LuaExtension;
+import tools.important.tankslua.SafeLuaRunner;
+import tools.important.tankslua.gui.ToggleOptionButton;
 
 public class ScreenOptionsLuaExtensionAbout extends Screen {
     private final LuaExtension extension;
+    public ToggleOptionButton enabledToggle;
     public Button backButton;
     public ScreenOptionsLuaExtensionAbout(LuaExtension extension) {
         this.extension = extension;
+
         this.backButton = new Button(centerX, centerY+objHeight*7, objWidth, objHeight, "Back", () -> Game.screen = new ScreenOptionsLuaExtensionList());
+
     }
     @Override
     public void update() {
@@ -25,6 +30,7 @@ public class ScreenOptionsLuaExtensionAbout extends Screen {
         backButton.draw();
 
         Drawing.drawing.setColor(0,0,0);
+
 
         Drawing.drawing.setInterfaceFontSize(titleSize);
         Drawing.drawing.displayInterfaceText(centerX, centerY-objHeight*5, extension.name);

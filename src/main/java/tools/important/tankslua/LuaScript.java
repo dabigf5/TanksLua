@@ -15,15 +15,16 @@ public abstract class LuaScript {
         System.out.println(fileName+": "+problem);
     }
 
+    public LuaScript(String fileName) {
+        this.fileName = fileName;
+    }
+
     /**
      * Initializes a LuaScript, and properly checks its table.
-     * @param fileName The name of the file you're loading the LuaScript from
      * @param table The table returned by the file.
      * @param tableTypes The proper types of the table.
      */
-    public LuaScript(String fileName, LuaValue table, HashMap<String, TableType> tableTypes) {
-        this.fileName = fileName;
-
+    public void loadTable(LuaValue table, HashMap<String, TableType> tableTypes) {
         VerificationResult verificationResult = verifyTable(table, tableTypes);
 
         if (!verificationResult.verified) {

@@ -23,7 +23,8 @@ public final class LevelScript extends LuaScript {
     public LuaValue fOnDraw;
 
     public LevelScript(LuaValue tLevel, String fileName) {
-        super(fileName, tLevel, LEVEL_TABLE_TYPES);
+        super(fileName);
+        super.loadTable(tLevel, LEVEL_TABLE_TYPES);
 
         this.fOnLoad = tLevel.get("onLoad");
         this.fOnUpdate = tLevel.get("onUpdate");
