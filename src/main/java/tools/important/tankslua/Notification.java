@@ -20,10 +20,6 @@ public class Notification {
         INFO,
         WARN,
     }
-    private enum NotificationState {
-        FOCUSED,
-        IDLE,
-    }
     public NotificationType type;
 
     /**
@@ -55,7 +51,6 @@ public class Notification {
     }
     private boolean mousing;
 
-    private double alpha = 255;
     private static final HashMap<NotificationType, Color> typeBackgroundColors = new HashMap<>();
     static {
         typeBackgroundColors.put(NotificationType.INFO, new Color(255,255,255));
@@ -63,17 +58,27 @@ public class Notification {
     }
     public void update() {
         if (removing) return;
+
+        double unit = Math.min(0.01, Panel.frameFrequency/125);
+
+        if (paused && !mousing) {
+            pauseSecondsLeft -= unit;
+            if (pauseSecondsLeft <= 0) paused = false;
+            return;
+        }
+
         notifIndex = TanksLua.tanksLua.activeNotifications.indexOf(this)+1;
         if (mousing) return;
-        secondsLeft -= Math.min(0.01, Panel.frameFrequency/125);
+        secondsLeft -= unit;
         if (secondsLeft <= 0) removing = true;
     }
-
+    private double pauseSecondsLeft;
+    private boolean paused;
     public boolean removing;
     public void draw() {
         if (removing) return;
         double notifRemovalProgress = (secondsLeft/totalSeconds);
-        alpha = (secondsLeft/totalSeconds)*255;
+        double alpha = notifRemovalProgress * 255;
         Screen screen = Game.screen;
 
         Color color = typeBackgroundColors.get(this.type);
@@ -82,13 +87,29 @@ public class Notification {
         int g = color.getGreen();
         int b = color.getBlue();
 
-        Drawing.drawing.setColor(r,g,b,alpha);
-
         double width = screen.objWidth*1.3;
         double height = screen.objHeight*3;
 
         double x = screen.centerX*2.3-width;
         double y = screen.centerY*2.1-(height*(notifIndex *1.1));
+
+        double mx = Drawing.drawing.getInterfaceMouseX();
+        double my = Drawing.drawing.getInterfaceMouseY();
+        double mouseBoxSize = 3;
+        double x2 = x-width/2;
+        double y2 = y-height/2;
+
+        this.mousing = mx < x2+width && x2 < mx+mouseBoxSize && my < y2+height && y2 < my+mouseBoxSize;
+
+        if (mousing) {
+            paused = true;
+            secondsLeft = totalSeconds;
+            pauseSecondsLeft = 0.5;
+        }
+
+        if (paused) alpha = 255;
+
+        Drawing.drawing.setColor(r,g,b, alpha);
 
         Drawing.drawing.fillInterfaceRect(x, y, width, height);
         Drawing.drawing.setColor(0,0,0, alpha);
@@ -96,15 +117,9 @@ public class Notification {
         Drawing.drawing.setInterfaceFontSize(screen.titleSize/(this.text.length()/23d));
         Drawing.drawing.displayInterfaceText(x, y, this.text);
 
-        double mx = Drawing.drawing.getInterfaceMouseX();
-        double my = Drawing.drawing.getInterfaceMouseY();
-        double mouseBoxSize = 10;
-        double x2 = x-width/2;
-        double y2 = y-height/2;
 
-        this.mousing = mx < x2+width && x2 < mx+mouseBoxSize && my < y2+height && y2 < my+mouseBoxSize;
 
-        Drawing.drawing.setColor(r*0.6,g*0.9,b*0.6, Math.min(alpha*1.3, 255));
+        Drawing.drawing.setColor(r*0.6,g*0.9,b*0.6, Math.min(alpha *1.3, 255));
 
         double progressBarHeight = height/20;
         Drawing.drawing.fillInterfaceProgressRect(x, y-(height/2)+(progressBarHeight/2), width, progressBarHeight, notifRemovalProgress);
