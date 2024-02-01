@@ -37,7 +37,6 @@ public final class LuaExtension extends LuaScript {
 
         this.name = (String) tExtension.get("name").toJavaObject();
         this.authorName = (String) tExtension.get("authorName").toJavaObject();
-        this.fileName = fileName;
 
         LuaValue desc = tExtension.get("description");
         if (desc.type() != Lua.LuaType.NIL) {

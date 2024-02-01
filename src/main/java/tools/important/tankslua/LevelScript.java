@@ -26,7 +26,6 @@ public final class LevelScript extends LuaScript {
     public LevelScript(LuaValue tLevel, String fileName) {
         super(fileName, tLevel, LEVEL_TABLE_TYPES);
 
-        this.fileName = fileName;
         this.fOnLoad = tLevel.get("onLoad");
         this.fOnUpdate = tLevel.get("onUpdate");
         this.fOnDraw = tLevel.get("onDraw");
