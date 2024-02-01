@@ -5,7 +5,7 @@ import tanks.Game;
 import tanks.Panel;
 import tanks.gui.screen.Screen;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.HashMap;
 
 /**
