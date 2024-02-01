@@ -26,7 +26,7 @@ import java.util.Map;
 
 public final class TanksLua extends Extension {
     public static TanksLua tanksLua;
-    public static final String version = "TanksLua Pre-Alpha";
+    public static final String version = "TanksLua Alpha 0.1.0";
     public static final String scriptPath = Game.directoryPath+"/scripts";
     public static final String fullScriptPath = System.getProperty("user.home").replace('\\', '/')+scriptPath;
     private static final boolean enableEvalBox = false;
