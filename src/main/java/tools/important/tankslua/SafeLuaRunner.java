@@ -4,9 +4,21 @@ import party.iroiro.luajava.Consts;
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.value.LuaValue;
 
+/**
+ * A class purely with static members which is for running lua functions
+ * if it's unknown whether the function will throw a lua error.
+ */
 public final class SafeLuaRunner {
     private SafeLuaRunner(){}
+
+    /**
+     * Automatically log errors to the console?
+     */
     public static boolean autoLogErrors = true;
+
+    /**
+     * The lua state that will be used for carrying out operations if none is passed to the method.
+     */
     public static Lua defaultState;
 
     /**
@@ -61,15 +73,19 @@ public final class SafeLuaRunner {
 
     /**
      * A static class which describes the result of a function call performed with safeCall.
-     * The last two entries in this record are mutually exclusive. This is because a call cannot return both
-     * the values it returned and leave values on the stack.
-    // * @param status If the operation succeeded or failed
-    // * @param returns The return values given by the function
-    // * @param unpoppedReturns The returns we've pushed onto the lua stack
      */
     static class UserCallResult{
+        /**
+         * The LuaError gotten by the call
+         */
         public Lua.LuaError status;
+        /**
+         * The returns of the call. Will be null in the event there are unpopped returns on the stack.
+         */
         public LuaValue[] returns;
+        /**
+         * The amount of unpopped returns that are still on the stack. This will be 0 in the event that returns has anything in it.
+         */
         public int unpoppedReturns;
         public UserCallResult(Lua.LuaError status, LuaValue[] returns, int unpoppedReturns) {
             this.status = status;
@@ -81,7 +97,7 @@ public final class SafeLuaRunner {
         public UserCallResult(Lua.LuaError status, int unpoppedReturns) {this(status,null,unpoppedReturns);}
     }
     /**
-     * Loads a Lua file, calls it, and properly handles any syntax errors that may occur.
+     * Loads a Lua file, calls it, and properly handles any loading errors that may occur.
      * This method uses a set of defaults to fill in the missing other parameters.
      *
      * @param filePathToLoad The path to the lua file you wish to load.
@@ -90,6 +106,14 @@ public final class SafeLuaRunner {
     public static LuaValue safeLoadFile(String filePathToLoad) {
         return safeLoadFile(defaultState, filePathToLoad);
     }
+    /**
+     * Loads a Lua file, calls it, and properly handles any loading errors that may occur.
+     * This method uses a set of defaults to fill in the missing other parameters.
+     *
+     * @param luaState The lua state to use to load the file.
+     * @param filePathToLoad The path to the lua file you wish to load.
+     * @return The function loaded from the lua file, or null if the load failed
+     */
     private static LuaValue safeLoadFile(Lua luaState, String filePathToLoad) {
         return safeLoadFile(luaState, filePathToLoad, null);
     }
@@ -123,6 +147,14 @@ public final class SafeLuaRunner {
         return safeCallLoadFunc(luaState, "load", stringToLoad, null);
     }
 
+    /**
+     * A private utility function that will simply call a function with one argument, and in the given environment.
+     * @param luaState The lua state to call the function with.
+     * @param funcName The name of the function
+     * @param argument The one argument to pass to the function
+     * @param tEnv The environment to call the function inside.
+     * @return Either the function, or null if it failed.
+     */
     private static LuaValue safeCallLoadFunc(Lua luaState, String funcName, String argument, LuaValue tEnv) {
         LuaValue[] loadResult;
 
@@ -134,7 +166,7 @@ public final class SafeLuaRunner {
 
         LuaValue fLoadedString = loadResult[0];
         if (fLoadedString.type() == Lua.LuaType.NIL) {
-            System.out.println("Lua: Error loading! "+loadResult[1].toJavaObject());
+            if (autoLogErrors) System.out.println("Lua: Error loading! "+loadResult[1].toJavaObject());
             return null;
         }
         return fLoadedString;
