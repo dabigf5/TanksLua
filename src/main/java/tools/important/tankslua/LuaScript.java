@@ -19,11 +19,6 @@ public abstract class LuaScript {
         this.fileName = fileName;
     }
 
-    /**
-     * Initializes a LuaScript, and properly checks its table.
-     * @param table The table returned by the file.
-     * @param tableTypes The proper types of the table.
-     */
     public void loadTable(LuaValue table, HashMap<String, TableType> tableTypes) {
         VerificationResult verificationResult = verifyTable(table, tableTypes);
 

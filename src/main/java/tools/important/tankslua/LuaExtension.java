@@ -32,23 +32,16 @@ public final class LuaExtension extends LuaScript {
 
     public LuaExtension(LuaValue tExtension, String fileName) {
         super(fileName);
-        loadExtOptions();
+        loadExtensionOptions();
 
         load(tExtension);
     }
-    public void loadExtOptions() {
+    public void loadExtensionOptions() {
         LuaValue tExtensionsOptions = loadExtensionOptionsTable();
         LuaValue tOurOptions = tExtensionsOptions.get(this.fileName);
 
-        System.out.println(tOurOptions.toJavaObject());
-    }
-
-    public void load() {
-        LuaValue fLoaded = SafeLuaRunner.safeLoadFile(TanksLua.fullScriptPath+this.fileName);
-
-        SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(fLoaded);
-
-        load(result.returns[0]);
+        options = new LuaCompatibleHashMap<>();
+        options.clearAndCopyLuaTable(tOurOptions);
     }
     public void load(LuaValue tExtension) {
         super.loadTable(tExtension, EXTENSION_TABLE_TYPES);
@@ -211,5 +204,7 @@ public final class LuaExtension extends LuaScript {
         EXTENSION_TABLE_TYPES.put("onLoad", new LuaScript.TableType(Lua.LuaType.FUNCTION, true));
         EXTENSION_TABLE_TYPES.put("onUpdate", new LuaScript.TableType(Lua.LuaType.FUNCTION, true));
         EXTENSION_TABLE_TYPES.put("onDraw", new LuaScript.TableType(Lua.LuaType.FUNCTION, true));
+
+        EXTENSION_TABLE_TYPES.put("options", new LuaScript.TableType(Lua.LuaType.TABLE, true));
     }
 }
