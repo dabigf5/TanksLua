@@ -3,6 +3,7 @@ package tools.important.tankslua;
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.LuaException;
 import party.iroiro.luajava.value.LuaValue;
+import tools.important.tankslua.luacompatible.LuaCompatibleHashMap;
 
 import java.io.File;
 import java.util.HashMap;
@@ -21,8 +22,10 @@ public final class LuaExtension extends LuaScript {
     public LuaValue fOnUpdate;
     @LuaNillable
     public LuaValue fOnDraw;
-    public boolean enabled;
 
+
+    public boolean enabled;
+    public LuaCompatibleHashMap<String, Object> options;
     @Override
     public void onVerificationError(String fileName, String problem) {
         new Notification(Notification.NotificationType.WARN, 5, "Extension " + fileName + " failed to verify! See log for details");
@@ -55,10 +58,24 @@ public final class LuaExtension extends LuaScript {
         this.fOnLoad = tExtension.get("onLoad");
         this.fOnUpdate = tExtension.get("onUpdate");
         this.fOnDraw = tExtension.get("onDraw");
-
+        loadOptions();
         System.out.println("successfully loaded extension \"" + name + "\" by " + authorName + " [" + fileName + "]");
+        System.out.println("enabled: "+enabled);
     }
+    public void loadOptions() {
+        LuaValue tExtOptions = loadExtensionOptionsTable();
+        LuaValue tOurOptions = tExtOptions.get(this.fileName);
 
+
+        LuaValue bIsEnabled = tOurOptions.get("enabled");
+        if (bIsEnabled.type() != Lua.LuaType.BOOLEAN)
+            throw new LuaException("non-boolean being used as enabled value");
+
+        //noinspection DataFlowIssue
+        enabled = (boolean) bIsEnabled.toJavaObject();
+
+        System.out.println(tOurOptions.toJavaObject());
+    }
     public String getVersionString() {
         return versionMajor + "." + versionMinor + "." + versionPatch;
     }
@@ -90,7 +107,29 @@ public final class LuaExtension extends LuaScript {
         this.versionMinor = 1;
         this.versionPatch = 0;
     }
+    private static LuaValue loadExtensionOptionsTable() {
+        LuaValue loaded = SafeLuaRunner.safeLoadFile(TanksLua.fullScriptPath+"/extensionOptions.lua");
 
+        if (loaded == null)
+            throw new LuaException("extension options file failed to load");
+
+        SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(loaded);
+
+        if (result.status != Lua.LuaError.OK)
+            throw new LuaException("extension options file failed to run");
+
+        LuaValue[] returns = result.returns;
+
+        if (returns.length != 1)
+            throw new LuaException("extension options file did not return exactly one value");
+
+        LuaValue table = result.returns[0];
+
+        if (table.type() != Lua.LuaType.TABLE)
+            throw new LuaException("extension options file did not return a table");
+
+        return table;
+    }
 
     @SuppressWarnings({"CommentedOutCode", "RedundantSuppression"})
     public static void registerExtensionsFromDir() {
@@ -141,7 +180,7 @@ public final class LuaExtension extends LuaScript {
                 TanksLua.tanksLua.loadedLuaExtensions.add(extension);
 
                 LuaValue fOnLoad = extension.fOnLoad;
-                if (fOnLoad.type() == Lua.LuaType.NIL) continue;
+                if (fOnLoad.type() == Lua.LuaType.NIL || !extension.enabled) continue;
 
                 SafeLuaRunner.UserCallResult onLoadResult = SafeLuaRunner.safeCall(fOnLoad);
 

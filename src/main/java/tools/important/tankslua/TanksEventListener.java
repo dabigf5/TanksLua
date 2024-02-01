@@ -22,6 +22,8 @@ public class TanksEventListener {
         lastScreen = Game.screen;
 
         for (LuaExtension luaext: TanksLua.tanksLua.loadedLuaExtensions) {
+            if (!luaext.enabled) return;
+
             LuaValue fOnUpdate = luaext.fOnUpdate;
             if (fOnUpdate.type() == Lua.LuaType.NIL) return;
             SafeLuaRunner.safeCall(fOnUpdate);
@@ -36,6 +38,8 @@ public class TanksEventListener {
         }
 
         for (LuaExtension luaext: TanksLua.tanksLua.loadedLuaExtensions) {
+            if (!luaext.enabled) return;
+
             LuaValue fOnDraw = luaext.fOnDraw;
             if (fOnDraw.type() == Lua.LuaType.NIL) return;
             SafeLuaRunner.safeCall(fOnDraw);
