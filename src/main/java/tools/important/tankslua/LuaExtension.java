@@ -115,7 +115,6 @@ public final class LuaExtension extends LuaScript {
                 String fileName = file.getName();
 
                 if (!fileName.endsWith(".lua")) {
-                    System.out.println("cont1");
                     continue;
                 }
 
