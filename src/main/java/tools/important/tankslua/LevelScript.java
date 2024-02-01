@@ -30,6 +30,13 @@ public final class LevelScript extends LuaScript {
         this.fOnLoad = tLevel.get("onLoad");
         this.fOnUpdate = tLevel.get("onUpdate");
         this.fOnDraw = tLevel.get("onDraw");
+
+        if (this.fOnLoad.type() == Lua.LuaType.NIL) return;
+
+        SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(this.fOnLoad);
+        if (result.status() != Lua.LuaError.OK) {
+            new Notification(Notification.NotificationType.WARN, 5, "The level script ran into an error in onLoad!");
+        }
     }
     public static LevelScript currentLevelScript;
     public static void tryLoadingLevelScript(String rawName) {
