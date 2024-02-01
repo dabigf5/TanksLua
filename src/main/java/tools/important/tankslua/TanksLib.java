@@ -3,6 +3,7 @@ package tools.important.tankslua;
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.LuaException;
 import party.iroiro.luajava.value.LuaValue;
+import tanks.Drawing;
 import tanks.Game;
 
 public final class TanksLib {
@@ -57,6 +58,45 @@ public final class TanksLib {
             return 0;
         });
         luaState.setTable(tanksLibStackIndex);
+
+        luaState.push("playSound");
+        luaState.push((ignored) -> {
+            int argnum = luaState.getTop();
+            if (argnum == 0 || argnum > 3) {
+                throw new LuaException("incorrect number of arguments for playSound");
+            }
+            float volume = 1f;
+            if (argnum == 3) {
+                LuaValue volumeLuaVal = luaState.get();
+                if (volumeLuaVal.type() != Lua.LuaType.NUMBER) {
+                    throw new LuaException("incorrect type for pitch supplied to playSound");
+                }
+                //noinspection DataFlowIssue
+                volume = ((Double) volumeLuaVal.toJavaObject()).floatValue();
+            }
+
+            float pitch = 1f;
+            if (argnum >= 2) {
+                LuaValue pitchLuaVal = luaState.get();
+                if (pitchLuaVal.type() != Lua.LuaType.NUMBER) {
+                    throw new LuaException("incorrect type for pitch supplied to playSound");
+                }
+                //noinspection DataFlowIssue
+                pitch = ((Double)pitchLuaVal.toJavaObject()).floatValue();
+            }
+
+            LuaValue soundNameLuaVal = luaState.get();
+            if (soundNameLuaVal.type() != Lua.LuaType.STRING) {
+                throw new LuaException("incorrect type for sound name supplied to playSound");
+            }
+            String soundName = (String) soundNameLuaVal.toJavaObject();
+
+            Drawing.drawing.playSound(soundName, pitch, volume);
+
+            return 0;
+        });
+        luaState.setTable(tanksLibStackIndex);
+
 
         luaState.setGlobal("tanks");
     }
