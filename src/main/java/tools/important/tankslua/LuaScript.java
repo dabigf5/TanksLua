@@ -20,12 +20,14 @@ public abstract class LuaScript {
         this.fileName = fileName;
     }
 
-    public void verify(LuaValue table, HashMap<String, TableType> tableTypes) {
+    protected boolean quickVerify(LuaValue table, HashMap<String, TableType> tableTypes) {
         VerificationResult verificationResult = verifyTable(table, tableTypes);
 
         if (!verificationResult.verified) {
             onVerificationError(fileName, verificationResult.message);
+            return false;
         }
+        return true;
     }
 
     /**
@@ -34,7 +36,7 @@ public abstract class LuaScript {
      * @param tableTypes A HashMap describing what types the table's keys should be.
      * @return A record that describes how the verification went. If verified is true, then message will be null.
      */
-    private static VerificationResult verifyTable(LuaValue tableToVerify, HashMap<String, TableType> tableTypes) {
+    protected static VerificationResult verifyTable(LuaValue tableToVerify, HashMap<String, TableType> tableTypes) {
         if (tableToVerify.type() != Lua.LuaType.TABLE) {
             return new VerificationResult(false, "Table given is of wrong type");
         }

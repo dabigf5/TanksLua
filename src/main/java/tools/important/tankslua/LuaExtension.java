@@ -26,6 +26,7 @@ public final class LuaExtension extends LuaScript {
 
     public LuaCompatibleHashMap<String, Object> options;
     public final HashMap<String, TableType> optionTypes = new HashMap<>();
+    public final HashMap<String, Object> defaultOptionValues = new HashMap<>();
 
     @Override
     public void onVerificationError(String fileName, String problem) {
@@ -35,9 +36,7 @@ public final class LuaExtension extends LuaScript {
 
     public LuaExtension(LuaValue tExtension, String fileName) {
         super(fileName);
-        loadExtensionOptions();
-
-        verify(tExtension, EXTENSION_TABLE_TYPES);
+        quickVerify(tExtension, EXTENSION_TABLE_TYPES);
 
         name = (String) tExtension.get("name").toJavaObject();
         authorName = (String) tExtension.get("authorName").toJavaObject();
@@ -69,7 +68,6 @@ public final class LuaExtension extends LuaScript {
         }
 
         HashMap<Object, Object> optionTypesConverted = (HashMap<Object, Object>) tOptionTypes.toJavaObject();
-
         assert optionTypesConverted != null;
 
         for (Map.Entry<Object, Object> pair: optionTypesConverted.entrySet()) {
@@ -79,24 +77,46 @@ public final class LuaExtension extends LuaScript {
                 return;
             }
             Object value = pair.getValue();
-            if (!(value instanceof String)) {
-                onVerificationError(fileName,"non-string value in options type table");
+            if (!(value instanceof HashMap)) {
+                onVerificationError(fileName,"non-table value in options type table");
                 return;
             }
 
             String optionName = (String) key;
-            String optionType = (String) value;
+            HashMap<Object, Object> optionTable = (HashMap<Object, Object>) value;
+            Object sTypeName = optionTable.get("type");
+            if (!(sTypeName instanceof String)) {
+                onVerificationError(fileName,"non-string value used as type name in option table");
+                return;
+            }
+
+            String optionType = (String) sTypeName;
             TableType tableType;
             try {
                 tableType = TableType.fromString(optionType);
             } catch (IllegalArgumentException ignored) {
-                onVerificationError(fileName, "Non-lua type as value in options type table");
+                onVerificationError(fileName, "non-lua type as value in options type table");
                 return;
             }
 
             optionTypes.put(optionName, tableType);
-        }
 
+            Lua.LuaType defaultValueType = tOptionTypes.get(optionName).get("default").type();
+
+            if (defaultValueType == Lua.LuaType.NIL) {
+                onVerificationError(fileName, "default value is missing from option "+optionName);
+                return;
+            }
+
+            if (defaultValueType != tableType.type) {
+                onVerificationError(fileName, "default value for "+optionName+" is of the wrong type");
+                return;
+            }
+
+            Object defaultValue = optionTable.get("default");
+            defaultOptionValues.put(optionName, defaultValue);
+        }
+        loadExtensionOptions();
         System.out.println("successfully loaded extension \"" + name + "\" by " + authorName + " [" + fileName + "]");
     }
     public void loadExtensionOptions() {
@@ -104,7 +124,21 @@ public final class LuaExtension extends LuaScript {
         LuaValue tOurOptions = tExtensionsOptions.get(this.fileName);
 
         options = new LuaCompatibleHashMap<>();
+        VerificationResult result = verifyTable(tOurOptions, optionTypes);
+        if (!result.verified) {
+            new Notification(Notification.NotificationType.WARN, 5, "Extension "+fileName+"'s options failed to verify! As a result, the defaults have been loaded instead.");
+            assignDefaultsToOptions();
+            return;
+        }
         options.clearAndCopyLuaTable(tOurOptions);
+    }
+    private void assignDefaultsToOptions() {
+        for (Map.Entry<String, Object> entry: defaultOptionValues.entrySet()) {
+            String optionName = entry.getKey();
+            Object defaultValue = entry.getValue();
+
+            options.put(optionName, defaultValue);
+        }
     }
     public String getVersionString() {
         return versionMajor + "." + versionMinor + "." + versionPatch;
