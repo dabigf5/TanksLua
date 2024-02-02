@@ -1,24 +1,63 @@
 package tools.important.tankslua.gui.screen;
 
+import party.iroiro.luajava.Lua;
 import tanks.Drawing;
 import tanks.Game;
 import tanks.gui.Button;
 import tanks.gui.screen.Screen;
 import tools.important.tankslua.LuaExtension;
-import tools.important.tankslua.gui.ToggleOptionButton;
+import tools.important.tankslua.LuaScript;
+import tools.important.tankslua.gui.extensionoption.Checkbox;
+import tools.important.tankslua.gui.extensionoption.ExtensionOptionElement;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ScreenOptionsLuaInspectExtension extends Screen {
+    private static final double beginningOptionYPositionMultiplier = 1.5;
+    private static final double yPositionMultiplierAdded = 0.5;
+    private static final HashMap<Lua.LuaType, Class<? extends ExtensionOptionElement>> elementTypes = new HashMap<>();
+    static {
+        elementTypes.put(Lua.LuaType.BOOLEAN, Checkbox.class);
+    }
     private final LuaExtension extension;
+    private final HashMap<String, ExtensionOptionElement> optionElements = new HashMap<>();
     public Button backButton;
+
+    private final double optionsTextX = centerX-objWidth*1.5;
+    private final double optionsTextY = centerY-objHeight*5;
     public ScreenOptionsLuaInspectExtension(LuaExtension extension) {
         this.extension = extension;
 
-        this.backButton = new Button(centerX, centerY+objHeight*7, objWidth, objHeight, "Back", () -> Game.screen = new ScreenOptionsLuaExtensionList());
+        double yPositionMultiplier = beginningOptionYPositionMultiplier;
+        for (Map.Entry<String, LuaScript.TableType> optionType : extension.optionTypes.entrySet()) {
+            double thisEntryY = optionsTextY+(objHeight*yPositionMultiplier);
+            String optionName = optionType.getKey();
+            Lua.LuaType luaType = optionType.getValue().type;
+            Class<? extends ExtensionOptionElement> uiElementClassForOption = elementTypes.get(luaType);
 
+            ExtensionOptionElement newExtensionOptionElement;
+
+            try {
+                newExtensionOptionElement = uiElementClassForOption.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
+            optionElements.put(optionName, newExtensionOptionElement);
+            newExtensionOptionElement.setPosition(optionsTextX+centerX/3, thisEntryY);
+            newExtensionOptionElement.setInitialState(extension.options.get(optionName));
+            yPositionMultiplier += yPositionMultiplierAdded;
+        }
+
+        this.backButton = new Button(centerX, centerY+objHeight*7, objWidth, objHeight, "Back", () -> Game.screen = new ScreenOptionsLuaExtensionList());
     }
     @Override
     public void update() {
         backButton.update();
+        for (ExtensionOptionElement e: optionElements.values()) {
+            e.update();
+        }
     }
 
     @Override
@@ -41,5 +80,23 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
 
         Drawing.drawing.setInterfaceFontSize(titleSize*0.6);
         Drawing.drawing.displayInterfaceText(centerX, centerY-objHeight*2, extension.getVersionString());
+
+        if (extension.optionTypes.isEmpty()) return;
+        Drawing.drawing.setFontSize(titleSize);
+        Drawing.drawing.drawText(optionsTextX, optionsTextY, "Options");
+        Drawing.drawing.setFontSize(titleSize*0.7);
+        double yPositionMultiplier = beginningOptionYPositionMultiplier;
+
+        for (Map.Entry<String, ExtensionOptionElement> entry: optionElements.entrySet()) {
+            double thisEntryY = optionsTextY+(objHeight*yPositionMultiplier);
+            Drawing.drawing.setInterfaceFontSize(titleSize);
+            String textDrawn = entry.getKey()+":";
+
+            Drawing.drawing.drawText(optionsTextX, thisEntryY, textDrawn);
+            ExtensionOptionElement ui = entry.getValue();
+
+            ui.draw();
+            yPositionMultiplier += yPositionMultiplierAdded;
+        }
     }
 }

@@ -6,6 +6,7 @@ import tools.important.tankslua.TanksLua;
 
 public class ToggleOptionButton extends Button {
     private boolean optionEnabled;
+
     public ToggleOptionButton(double x, double y, double sX, double sY, String optionName, Runnable onEnable, Runnable onDisable, boolean initialState) {
         this(x,y,sX,sY,optionName,onEnable,onDisable,initialState,null);
     }

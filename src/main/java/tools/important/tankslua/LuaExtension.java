@@ -7,6 +7,7 @@ import tools.important.tankslua.luacompatible.LuaCompatibleHashMap;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Map;
 
 public final class LuaExtension extends LuaScript {
     public String name;
@@ -24,27 +25,19 @@ public final class LuaExtension extends LuaScript {
     public LuaValue fOnDraw;
 
     public LuaCompatibleHashMap<String, Object> options;
+    public final HashMap<String, TableType> optionTypes = new HashMap<>();
+
     @Override
     public void onVerificationError(String fileName, String problem) {
         new Notification(Notification.NotificationType.WARN, 5, "Extension " + fileName + " failed to verify! See log for details");
-        System.out.println("Extension " + fileName + " failed to verify: " + problem);
+        throw new LuaException("Extension " + fileName + " failed to verify: " + problem);
     }
 
     public LuaExtension(LuaValue tExtension, String fileName) {
         super(fileName);
         loadExtensionOptions();
 
-        load(tExtension);
-    }
-    public void loadExtensionOptions() {
-        LuaValue tExtensionsOptions = loadExtensionOptionsTable();
-        LuaValue tOurOptions = tExtensionsOptions.get(this.fileName);
-
-        options = new LuaCompatibleHashMap<>();
-        options.clearAndCopyLuaTable(tOurOptions);
-    }
-    public void load(LuaValue tExtension) {
-        super.loadTable(tExtension, EXTENSION_TABLE_TYPES);
+        verify(tExtension, EXTENSION_TABLE_TYPES);
 
         name = (String) tExtension.get("name").toJavaObject();
         authorName = (String) tExtension.get("authorName").toJavaObject();
@@ -70,7 +63,48 @@ public final class LuaExtension extends LuaScript {
         fOnUpdate = tExtension.get("onUpdate");
         fOnDraw = tExtension.get("onDraw");
 
+        LuaValue tOptionTypes = tExtension.get("options");
+        if (tOptionTypes.type() == Lua.LuaType.NIL) {
+            return;
+        }
+
+        HashMap<Object, Object> optionTypesConverted = (HashMap<Object, Object>) tOptionTypes.toJavaObject();
+
+        assert optionTypesConverted != null;
+
+        for (Map.Entry<Object, Object> pair: optionTypesConverted.entrySet()) {
+            Object key = pair.getKey();
+            if (!(key instanceof String)) {
+                onVerificationError(fileName,"non-string key in options type table");
+                return;
+            }
+            Object value = pair.getValue();
+            if (!(value instanceof String)) {
+                onVerificationError(fileName,"non-string value in options type table");
+                return;
+            }
+
+            String optionName = (String) key;
+            String optionType = (String) value;
+            TableType tableType;
+            try {
+                tableType = TableType.fromString(optionType);
+            } catch (IllegalArgumentException ignored) {
+                onVerificationError(fileName, "Non-lua type as value in options type table");
+                return;
+            }
+
+            optionTypes.put(optionName, tableType);
+        }
+
         System.out.println("successfully loaded extension \"" + name + "\" by " + authorName + " [" + fileName + "]");
+    }
+    public void loadExtensionOptions() {
+        LuaValue tExtensionsOptions = loadExtensionOptionsTable();
+        LuaValue tOurOptions = tExtensionsOptions.get(this.fileName);
+
+        options = new LuaCompatibleHashMap<>();
+        options.clearAndCopyLuaTable(tOurOptions);
     }
     public String getVersionString() {
         return versionMajor + "." + versionMinor + "." + versionPatch;

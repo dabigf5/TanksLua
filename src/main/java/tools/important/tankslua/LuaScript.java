@@ -13,18 +13,18 @@ public abstract class LuaScript {
     protected LuaScript() {} // for debugging purposes
     public void onVerificationError(String fileName, String problem) {
         System.out.println(fileName+": "+problem);
+        throw new LuaException(fileName+": "+problem);
     }
 
     public LuaScript(String fileName) {
         this.fileName = fileName;
     }
 
-    public void loadTable(LuaValue table, HashMap<String, TableType> tableTypes) {
+    public void verify(LuaValue table, HashMap<String, TableType> tableTypes) {
         VerificationResult verificationResult = verifyTable(table, tableTypes);
 
         if (!verificationResult.verified) {
             onVerificationError(fileName, verificationResult.message);
-            throw new LuaException(fileName+": "+verificationResult.message);
         }
     }
 
@@ -63,12 +63,19 @@ public abstract class LuaScript {
         return new VerificationResult(true);
     }
 
-    static class TableType {
+    public static class TableType {
         public Lua.LuaType type;
         public boolean optional;
         public TableType(Lua.LuaType type, boolean optional) {
             this.type = type;
             this.optional = optional;
+        }
+        public static TableType fromString(String typestr) {
+            boolean optional = typestr.endsWith("?");
+            String typeName = typestr.replace("?","").toUpperCase();
+            Lua.LuaType luaType = Lua.LuaType.valueOf(typeName);
+
+            return new TableType(luaType, optional);
         }
     }
 
