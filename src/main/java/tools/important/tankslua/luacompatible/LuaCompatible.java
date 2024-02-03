@@ -24,4 +24,10 @@ public interface LuaCompatible {
      * @param tTableToCopy The table you wish to copy
      */
     void clearAndCopyLuaTable(LuaValue tTableToCopy);
+
+    /**
+     * Convert the lua-compatible object to a valid table literal in Lua.
+     * @return This lua-compatible object represented as a table literal
+     */
+    String getTableLiteral();
 }

@@ -18,6 +18,7 @@ import tools.important.tankslua.luacompatible.LuaCompatibleArrayList;
 import tools.important.tankslua.luacompatible.LuaCompatibleHashMap;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,8 +54,40 @@ public final class TanksLua extends Extension {
         super("TanksLua");
     }
 
-    @Override
-    public void loadResources() {
+    public static void initializeScriptsDir() {
+        makeEmptyDirectory(fullScriptPath);
+        makeEmptyDirectory(fullScriptPath+"/extensions");
+        makeEmptyDirectory(fullScriptPath+"/level");
+        makeFileWithContents(fullScriptPath+"/options.lua", "return {}");
+        makeFileWithContents(fullScriptPath+"/extensionOptions.lua", "return {}");
+    }
+    private static void makeEmptyDirectory(String path) {
+        File dir = new File(path);
+        if (!dir.mkdir()) {
+            throw new RuntimeException("Unable to create directory "+path);
+        };
+    }
+    private static void makeEmptyFile(String path) {
+        File file = new File(path);
+
+        try {
+            if (!file.createNewFile()) {
+                throw new RuntimeException("Unable to create file "+path);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Unable to create file "+path);
+        }
+    }
+    private static void makeFileWithContents(String path, String contents) {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(path));
+            writer.write(contents);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Unable to create file "+path);
+        }
     }
 
     @Override
@@ -62,6 +95,9 @@ public final class TanksLua extends Extension {
         tanksLua = this;
         options = new LuaCompatibleHashMap<>();
         loadedLuaExtensions = new LuaCompatibleArrayList<>();
+
+        if (!new File(fullScriptPath).exists())
+            initializeScriptsDir();
 
         coreLuaState = new Lua54();
         coreLuaState.openLibraries();
@@ -108,6 +144,10 @@ public final class TanksLua extends Extension {
                 SafeLuaRunner.safeCall(fLoadedString);
         });
     }
+    private static final HashMap<String, Object> defaultOptions = new HashMap<>();
+    static {
+        defaultOptions.put("enableLevelScripts", false);
+    }
     public void loadOptions() {
         LuaValue fDoFile = coreLuaState.get("dofile");
 
@@ -140,12 +180,13 @@ public final class TanksLua extends Extension {
             }
         }
 
+        this.options.clearAndCopyLuaTable(tOptions);
+
         for (String expectedOptionName: optionTypes.keySet()) {
             if (tOptions.get(expectedOptionName).type() == Lua.LuaType.NIL) {
-                throw new LuaException("Option "+expectedOptionName+" is missing from the options table!");
+                options.put(expectedOptionName, defaultOptions.get(expectedOptionName));
             }
         }
-        this.options.clearAndCopyLuaTable(tOptions);
     }
 
     public void saveOptions() {

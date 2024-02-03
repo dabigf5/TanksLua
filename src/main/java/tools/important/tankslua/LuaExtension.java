@@ -5,7 +5,10 @@ import party.iroiro.luajava.LuaException;
 import party.iroiro.luajava.value.LuaValue;
 import tools.important.tankslua.luacompatible.LuaCompatibleHashMap;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +26,8 @@ public final class LuaExtension extends LuaScript {
     public LuaValue fOnUpdate;
     @LuaNillable
     public LuaValue fOnDraw;
+    @LuaNillable
+    public LuaValue fOnNewOptions;
 
     public LuaCompatibleHashMap<String, Object> options;
     public final HashMap<String, TableType> optionTypes = new HashMap<>();
@@ -61,6 +66,7 @@ public final class LuaExtension extends LuaScript {
         fOnLoad = tExtension.get("onLoad");
         fOnUpdate = tExtension.get("onUpdate");
         fOnDraw = tExtension.get("onDraw");
+        fOnNewOptions = tExtension.get("onNewOptions");
 
         LuaValue tOptionTypes = tExtension.get("options");
         if (tOptionTypes.type() == Lua.LuaType.NIL) {
@@ -124,6 +130,12 @@ public final class LuaExtension extends LuaScript {
         LuaValue tOurOptions = tExtensionsOptions.get(this.fileName);
 
         options = new LuaCompatibleHashMap<>();
+        if (tOurOptions.type() == Lua.LuaType.NIL) {
+            assignDefaultsToOptions(); // silently assign the defaults because this can happen under normal circumstances
+            return;
+        }
+
+
         VerificationResult result = verifyTable(tOurOptions, optionTypes);
         if (!result.verified) {
             new Notification(Notification.NotificationType.WARN, 5, "Extension "+fileName+"'s options failed to verify! As a result, the defaults have been loaded instead.");
@@ -158,7 +170,24 @@ public final class LuaExtension extends LuaScript {
 
         return (int) versionNumber;
     }
+    public static void saveExtensionOptions() {
+        StringBuilder optionsFileBuilder = new StringBuilder("return {");
+        for (LuaExtension luaExtension: TanksLua.tanksLua.loadedLuaExtensions) {
+            optionsFileBuilder.append("\n[\"").append(luaExtension.fileName).append("\"]=");
+            optionsFileBuilder.append(luaExtension.options.getTableLiteral()).append(",");
+        }
+        optionsFileBuilder.append("}");
+        String newOptionsFile = optionsFileBuilder.toString();
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(TanksLua.fullScriptPath + "/extensionOptions.lua"));
+            writer.write(newOptionsFile);
+            writer.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+            new Notification(Notification.NotificationType.WARN, 5, "An error occurred saving extension settings! See log for details");
+        }
 
+    }
     @SuppressWarnings("unused")
     private LuaExtension(String name, String authorName, String fileName) { // for testing purposes only
         super();
@@ -244,14 +273,27 @@ public final class LuaExtension extends LuaScript {
                 TanksLua.tanksLua.loadedLuaExtensions.add(extension);
 
                 LuaValue fOnLoad = extension.fOnLoad;
+                LuaValue fOnNewOptions = extension.fOnNewOptions;
 
-                if (fOnLoad.type() == Lua.LuaType.NIL) continue;
+                if (fOnLoad.type() != Lua.LuaType.NIL) {
+                    SafeLuaRunner.UserCallResult onLoadResult = SafeLuaRunner.safeCall(fOnLoad);
 
-                SafeLuaRunner.UserCallResult onLoadResult = SafeLuaRunner.safeCall(fOnLoad);
-
-                if (onLoadResult.status != Lua.LuaError.OK) {
-                    System.out.println("extension " + extension.fileName + ": onLoad ran into an error ");
+                    if (onLoadResult.status != Lua.LuaError.OK) {
+                        System.out.println("extension " + extension.fileName + ": onLoad ran into an error ");
+                        new Notification(Notification.NotificationType.WARN, 5, "Extension "+extension.fileName+" ran into an issue in onLoad!");
+                    }
                 }
+                if (fOnNewOptions.type() != Lua.LuaType.NIL) {
+                    SafeLuaRunner.UserCallResult onLoadResult = SafeLuaRunner.safeCall(fOnNewOptions, extension.options.getLuaTable(SafeLuaRunner.defaultState));
+
+                    if (onLoadResult.status != Lua.LuaError.OK) {
+                        System.out.println("extension " + extension.fileName + ": onNewOptions ran into an error ");
+                        new Notification(Notification.NotificationType.WARN, 5, "Extension "+extension.fileName+" ran into an issue processing options!");
+                    }
+                }
+
+
+
             } catch (LuaException luaException) {
                 System.out.println(luaException.getMessage());
             }
@@ -272,6 +314,7 @@ public final class LuaExtension extends LuaScript {
         EXTENSION_TABLE_TYPES.put("onLoad", new LuaScript.TableType(Lua.LuaType.FUNCTION, true));
         EXTENSION_TABLE_TYPES.put("onUpdate", new LuaScript.TableType(Lua.LuaType.FUNCTION, true));
         EXTENSION_TABLE_TYPES.put("onDraw", new LuaScript.TableType(Lua.LuaType.FUNCTION, true));
+        EXTENSION_TABLE_TYPES.put("onNewOptions", new TableType(Lua.LuaType.FUNCTION, true));
 
         EXTENSION_TABLE_TYPES.put("options", new LuaScript.TableType(Lua.LuaType.TABLE, true));
     }

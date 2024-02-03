@@ -7,6 +7,7 @@ import tanks.gui.Button;
 import tanks.gui.screen.Screen;
 import tools.important.tankslua.LuaExtension;
 import tools.important.tankslua.LuaScript;
+import tools.important.tankslua.SafeLuaRunner;
 import tools.important.tankslua.gui.extensionoption.Checkbox;
 import tools.important.tankslua.gui.extensionoption.ExtensionOptionElement;
 
@@ -14,8 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ScreenOptionsLuaInspectExtension extends Screen {
-    private static final double beginningOptionYPositionMultiplier = 1.5;
-    private static final double yPositionMultiplierAdded = 0.5;
+    private static final double beginningOptionYPositionMultiplier = 1.2;
+    private static final double yPositionMultiplierAdded = 2;
     private static final HashMap<Lua.LuaType, Class<? extends ExtensionOptionElement>> elementTypes = new HashMap<>();
     static {
         elementTypes.put(Lua.LuaType.BOOLEAN, Checkbox.class);
@@ -25,7 +26,7 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
     public Button backButton;
 
     private final double optionsTextX = centerX-objWidth*1.5;
-    private final double optionsTextY = centerY-objHeight*5;
+    private final double optionsTextY = centerY-objHeight*2;
     public ScreenOptionsLuaInspectExtension(LuaExtension extension) {
         this.extension = extension;
 
@@ -47,6 +48,13 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
             optionElements.put(optionName, newExtensionOptionElement);
             newExtensionOptionElement.setPosition(optionsTextX+centerX/3, thisEntryY);
             newExtensionOptionElement.setInitialState(extension.options.get(optionName));
+            newExtensionOptionElement.setOnValueChanged((Object newValue) -> {
+                extension.options.put(optionName, newValue);
+                LuaExtension.saveExtensionOptions();
+                if (extension.fOnNewOptions.type() == Lua.LuaType.NIL) return;
+
+                SafeLuaRunner.safeCall(extension.fOnNewOptions, extension.options.getLuaTable(SafeLuaRunner.defaultState));
+            });
             yPositionMultiplier += yPositionMultiplierAdded;
         }
 

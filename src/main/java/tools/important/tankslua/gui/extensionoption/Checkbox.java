@@ -3,10 +3,14 @@ package tools.important.tankslua.gui.extensionoption;
 import tanks.Drawing;
 import tanks.Game;
 import tanks.gui.Button;
+import tools.important.tankslua.LuaExtension;
+
+import java.util.function.Consumer;
 
 public class Checkbox extends Button implements ExtensionOptionElement {
     public static final double CHECKBOX_SIZE = 75;
     private boolean isChecked;
+    private Consumer<Object> onValueChanged;
     public Checkbox() {
         super(0,0, CHECKBOX_SIZE, CHECKBOX_SIZE, "");
         this.enabled = true;
@@ -15,6 +19,8 @@ public class Checkbox extends Button implements ExtensionOptionElement {
 
     public void setChecked(boolean checked) {
         this.isChecked = checked;
+        if (onValueChanged == null) return;
+        onValueChanged.accept(isChecked);
     }
 
     @Override
@@ -37,5 +43,10 @@ public class Checkbox extends Button implements ExtensionOptionElement {
     @Override
     public void setInitialState(Object initialState) {
         setChecked((boolean) initialState);
+    }
+
+    @Override
+    public void setOnValueChanged(Consumer<Object> onValueChanged) {
+        this.onValueChanged = onValueChanged;
     }
 }
