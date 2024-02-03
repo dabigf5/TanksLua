@@ -1,11 +1,11 @@
 # TanksLua
-TanksLua is an extension for Tanks: The Crusades which allows for lua scripting.
+TanksLua is an extension for Tanks: The Crusades which allows for lua scripting.\
 please note that this extension is quite early in development, and subject to change
 
 ## How-to
 all things related to this extension are stored in a special directory, `.tanks/scripts/`
 ### Level Script Example
-a level script is simply a script that runs when a level is loaded
+a level script is simply a script that runs when a level is loaded\
 in order to set up one, you create a lua file in `.tanks/scripts/level/` which is the name of the level, but with `.lua` as the extension instead of `.tanks`
 
 here's an example level script that does completely nothing:
@@ -31,9 +31,9 @@ return lvl
 ```
 
 ### Extension Example
-this extension supports lua extensions, so you can have extensions inside your extension
+this extension supports lua extensions, so you can have extensions inside your extension\
 
-in order to create an extension, create a lua file in `.tanks/scripts/extensions/` and name it whatever you want, as long as it ends with `.lua`
+in order to create an extension, create a lua file in `.tanks/scripts/extensions/` and name it whatever you want, as long as it ends with `.lua`\
 here's an example of an extension that does completely nothing:
 
 ```lua
