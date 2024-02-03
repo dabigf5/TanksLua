@@ -94,6 +94,7 @@ return {
     end,
 
     onUpdate = function()
+        if not enableUpdatePrint then return end
         print("updated")
     end,
 }
