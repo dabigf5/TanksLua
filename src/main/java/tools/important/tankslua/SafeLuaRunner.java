@@ -45,11 +45,12 @@ public final class SafeLuaRunner {
         Lua.LuaError result = luaState.pCall(parameters.length, Consts.LUA_MULTRET);
 
         if (result != Lua.LuaError.OK) {
+            String error = luaState.toString(luaState.getTop());
             if (autoLogErrors) {
-                System.out.println("Lua error: "+result+"; "+ luaState.toString(luaState.getTop()));
+                System.out.println("Lua error: "+result+"; "+error);
             }
             luaState.pop(1);
-            return new LuaResult(result);
+            return new LuaResult(result, error);
         }
 
 
@@ -74,6 +75,12 @@ public final class SafeLuaRunner {
          * The LuaError gotten by the call
          */
         public Lua.LuaError status;
+
+        /**
+         * The error message for if the call failed
+         */
+        public String errorMessage;
+
         /**
          * The returns of the call. Will be null in the event there are unpopped returns on the stack.
          */
@@ -87,9 +94,12 @@ public final class SafeLuaRunner {
             this.returns = returns;
             this.unpoppedReturns = unpoppedReturns;
         }
-        public LuaResult(Lua.LuaError status) {this(status,null,0);}
         public LuaResult(Lua.LuaError status, LuaValue[] returns) {this(status,returns,0);}
         public LuaResult(Lua.LuaError status, int unpoppedReturns) {this(status,null,unpoppedReturns);}
+        public LuaResult(Lua.LuaError status, String errorMessage) {
+            this(status, null, 0);
+            this.errorMessage = errorMessage;
+        }
     }
 
     /**
@@ -144,8 +154,9 @@ public final class SafeLuaRunner {
 
         LuaValue fLoadedString = loadResult[0];
         if (fLoadedString.type() == Lua.LuaType.NIL) {
-            if (autoLogErrors) System.out.println("Lua: Error loading! "+loadResult[1].toJavaObject());
-            return new LuaResult(Lua.LuaError.SYNTAX); // i'll just assume it's a syntax error
+            String errorMessage = (String) loadResult[1].toJavaObject();
+            if (autoLogErrors) System.out.println("Lua: Error loading! "+errorMessage);
+            return new LuaResult(Lua.LuaError.SYNTAX, errorMessage); // i'll just assume it's a syntax error
         }
         return new LuaResult(Lua.LuaError.OK, loadResult);
     }

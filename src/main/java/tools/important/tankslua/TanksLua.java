@@ -28,8 +28,8 @@ import java.util.Map;
 public final class TanksLua extends Extension {
     public static TanksLua tanksLua;
     public static final String version = "TanksLua Alpha 0.1.0";
-    public static final String scriptPath = Game.directoryPath+"/scripts";
-    public static final String fullScriptPath = System.getProperty("user.home").replace('\\', '/')+scriptPath;
+    public static final String scriptPath = Game.directoryPath + "/scripts";
+    public static final String fullScriptPath = System.getProperty("user.home").replace('\\', '/') + scriptPath;
     public Lua evalBoxLuaState;
     public Lua internalLuaState;
     public LuaCompatibleHashMap<String, Object> options;
@@ -57,15 +57,16 @@ public final class TanksLua extends Extension {
 
     public static void initializeScriptsDir() {
         makeEmptyDirectory(fullScriptPath);
-        makeEmptyDirectory(fullScriptPath+"/extensions");
-        makeEmptyDirectory(fullScriptPath+"/level");
-        makeFileWithContents(fullScriptPath+"/options.lua", "return {}");
-        makeFileWithContents(fullScriptPath+"/extensionOptions.lua", "return {}");
+        makeEmptyDirectory(fullScriptPath + "/extensions");
+        makeEmptyDirectory(fullScriptPath + "/level");
+        makeFileWithContents(fullScriptPath + "/options.lua", "return {}");
+        makeFileWithContents(fullScriptPath + "/extensionOptions.lua", "return {}");
     }
+
     private static void makeEmptyDirectory(String path) {
         File dir = new File(path);
         if (!dir.mkdir()) {
-            throw new RuntimeException("Unable to create directory "+path);
+            throw new RuntimeException("Unable to create directory " + path);
         }
     }
     // this may be needed one day
@@ -89,7 +90,7 @@ public final class TanksLua extends Extension {
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
-            throw new RuntimeException("Unable to create file "+path);
+            throw new RuntimeException("Unable to create file " + path);
         }
     }
 
@@ -124,7 +125,8 @@ public final class TanksLua extends Extension {
                 "The options for the TanksLua extension"
         );
 
-        evalCodeBox = new TextBox(screen.centerX, screen.objYSpace, screen.objWidth*4, screen.objHeight, "Lua Code", () -> {}, "");
+        evalCodeBox = new TextBox(screen.centerX, screen.objYSpace, screen.objWidth * 4, screen.objHeight, "Lua Code", () -> {
+        }, "");
         evalCodeBox.allowLetters = true;
         evalCodeBox.allowSpaces = true;
         evalCodeBox.enableCaps = true;
@@ -140,34 +142,38 @@ public final class TanksLua extends Extension {
 
         evalCodeBox.maxChars = 1000; // who's gonna write lua code longer than 1000 characters
 
-        evalRunButton = new Button(screen.centerX-screen.objXSpace*1.37, screen.objYSpace*2, screen.objWidth, screen.objHeight, "Evaluate", () -> {
-                SafeLuaRunner.LuaResult loadResult = SafeLuaRunner.safeLoadString(evalBoxLuaState, evalCodeBox.inputText);
-                //todo: make the error show up in the notification
-                // additionally, make the below value proportional to the length of the code so you can read it
-                final double youFuckedUpNotifSeconds = 1.3;
+        evalRunButton = new Button(screen.centerX - screen.objXSpace * 1.37, screen.objYSpace * 2, screen.objWidth, screen.objHeight, "Evaluate", () -> {
+            String code = evalCodeBox.inputText;
+            SafeLuaRunner.LuaResult loadResult = SafeLuaRunner.safeLoadString(evalBoxLuaState, code);
+            final double youFuckedUpSecondsPerCharacter = 0.1;
 
-                if (loadResult.status != Lua.LuaError.OK) {
-                    new Notification(Notification.NotificationType.WARN, youFuckedUpNotifSeconds, "Your code failed to load! See logs for more info");
-                    return;
-                }
+            if (loadResult.status != Lua.LuaError.OK) {
+                String error = loadResult.errorMessage;
+                new Notification(Notification.NotificationType.WARN, youFuckedUpSecondsPerCharacter * error.length(), "Your code failed to load! " + error);
+                return;
+            }
 
-                SafeLuaRunner.LuaResult callResult = SafeLuaRunner.safeCall(loadResult.returns[0]);
+            SafeLuaRunner.LuaResult callResult = SafeLuaRunner.safeCall(loadResult.returns[0]);
 
-                if (callResult.status != Lua.LuaError.OK) {
-                    new Notification(Notification.NotificationType.WARN, youFuckedUpNotifSeconds, "Your code failed to run! See logs for more info");
-                    return;
-                }
+            if (callResult.status != Lua.LuaError.OK) {
+                String error = callResult.errorMessage;
+                new Notification(Notification.NotificationType.WARN, youFuckedUpSecondsPerCharacter * error.length(), "Your code failed to run! " + error);
+                return;
+            }
 
-                new Notification(Notification.NotificationType.INFO, 1,"Successfully ran your code!");
+            new Notification(Notification.NotificationType.INFO, 1, "Successfully ran your code!");
         });
     }
+
     private static final HashMap<String, Object> defaultOptions = new HashMap<>();
+
     static {
         defaultOptions.put("enableLevelScripts", false);
         defaultOptions.put("enableEvalBox", false);
     }
+
     public void loadOptions() {
-        SafeLuaRunner.LuaResult result = SafeLuaRunner.safeLoadFile(internalLuaState, fullScriptPath+"/options.lua");
+        SafeLuaRunner.LuaResult result = SafeLuaRunner.safeLoadFile(internalLuaState, fullScriptPath + "/options.lua");
 
         if (result.status != Lua.LuaError.OK) {
             throw new LuaException("options.lua failed to load!");
@@ -193,25 +199,25 @@ public final class TanksLua extends Extension {
 
         HashMap<Object, Object> tOptionsMap = (HashMap<Object, Object>) tOptions.toJavaObject();
         assert tOptionsMap != null;
-        for (Object tKey: tOptionsMap.keySet()) {
+        for (Object tKey : tOptionsMap.keySet()) {
             if (!(tKey instanceof String)) {
                 throw new LuaException("Key exists in options table that is not a string!");
             }
             String optionName = (String) tKey;
             Lua.LuaType expectedType = optionTypes.get(optionName);
             if (expectedType == null) {
-                throw new LuaException("Unknown option name '"+optionName+"'!");
+                throw new LuaException("Unknown option name '" + optionName + "'!");
             }
             LuaValue value = tOptions.get(optionName);
             Lua.LuaType valueType = value.type();
             if (valueType != expectedType) {
-                throw new LuaException("Option "+optionName+" is of the wrong type! (Expected "+expectedType+", got "+valueType+")");
+                throw new LuaException("Option " + optionName + " is of the wrong type! (Expected " + expectedType + ", got " + valueType + ")");
             }
         }
 
         this.options.clearAndCopyLuaTable(tOptions);
 
-        for (String expectedOptionName: optionTypes.keySet()) {
+        for (String expectedOptionName : optionTypes.keySet()) {
             if (tOptions.get(expectedOptionName).type() == Lua.LuaType.NIL) {
                 options.put(expectedOptionName, defaultOptions.get(expectedOptionName));
             }
@@ -234,7 +240,7 @@ public final class TanksLua extends Extension {
         }
         newOptionsScript.append("}");
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(fullScriptPath+"/options.lua"));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(fullScriptPath + "/options.lua"));
             writer.write(newOptionsScript.toString());
             writer.close();
         } catch (IOException e) {
@@ -245,7 +251,7 @@ public final class TanksLua extends Extension {
     @Override
     public void draw() {
         if (Drawing.drawing.enableStats) {
-            final String drawnText = "Running "+version;
+            final String drawnText = "Running " + version;
             double rightEdge = Game.game.window.absoluteWidth;
             double textWidth = Game.game.window.fontRenderer.getStringSizeX(0.4, drawnText);
 
@@ -262,13 +268,13 @@ public final class TanksLua extends Extension {
             enterLuaOptionsButton.draw();
         }
 
-        if (options != null && (boolean)options.get("enableEvalBox")) {
+        if (options != null && (boolean) options.get("enableEvalBox")) {
             drawExtraMouseTarget = true;
             evalCodeBox.draw();
             evalRunButton.draw();
         }
 
-        for (Notification notif: activeNotifications) {
+        for (Notification notif : activeNotifications) {
             notif.draw();
             drawExtraMouseTarget = true;
         }
