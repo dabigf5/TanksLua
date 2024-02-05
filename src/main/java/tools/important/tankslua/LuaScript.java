@@ -20,14 +20,12 @@ public abstract class LuaScript {
         this.fileName = fileName;
     }
 
-    protected boolean quickVerify(LuaValue table, HashMap<String, TableType> tableTypes) {
+    protected void quickVerify(LuaValue table, HashMap<String, TableType> tableTypes) {
         VerificationResult verificationResult = verifyTable(table, tableTypes);
 
         if (!verificationResult.verified) {
             onVerificationError(fileName, verificationResult.message);
-            return false;
         }
-        return true;
     }
 
     /**
