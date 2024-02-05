@@ -31,7 +31,7 @@ return lvl
 ```
 
 ### Extension Example
-this extension supports lua extensions, so you can have extensions inside your extension\
+this extension supports lua extensions, so you can have extensions inside your extension
 
 in order to create an extension, create a lua file in `.tanks/scripts/extensions/` and name it whatever you want, as long as it ends with `.lua`\
 here's an example of an extension that does completely nothing:
@@ -94,6 +94,7 @@ return {
     end,
 
     onUpdate = function()
+        if not enableUpdatePrint then return end
         print("updated")
     end,
 }
