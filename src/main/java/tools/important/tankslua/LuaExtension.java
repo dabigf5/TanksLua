@@ -14,6 +14,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class LuaExtension extends LuaScript {
+    private static final HashMap<String, LuaScript.TableType> EXTENSION_TABLE_TYPES = new HashMap<>();
+
+    static {
+        EXTENSION_TABLE_TYPES.put("name", new TableType(Lua.LuaType.STRING, false));
+        EXTENSION_TABLE_TYPES.put("authorName", new TableType(Lua.LuaType.STRING, false));
+        EXTENSION_TABLE_TYPES.put("description", new TableType(Lua.LuaType.STRING, true));
+
+        EXTENSION_TABLE_TYPES.put("versionMajor", new TableType(Lua.LuaType.NUMBER, false));
+        EXTENSION_TABLE_TYPES.put("versionMinor", new TableType(Lua.LuaType.NUMBER, false));
+        EXTENSION_TABLE_TYPES.put("versionPatch", new TableType(Lua.LuaType.NUMBER, false));
+
+        EXTENSION_TABLE_TYPES.put("onLoad", new TableType(Lua.LuaType.FUNCTION, true));
+        EXTENSION_TABLE_TYPES.put("onUpdate", new TableType(Lua.LuaType.FUNCTION, true));
+        EXTENSION_TABLE_TYPES.put("onDraw", new TableType(Lua.LuaType.FUNCTION, true));
+        EXTENSION_TABLE_TYPES.put("onNewOptions", new TableType(Lua.LuaType.FUNCTION, true));
+        EXTENSION_TABLE_TYPES.put("onLevelLoad", new TableType(Lua.LuaType.FUNCTION, true));
+
+        EXTENSION_TABLE_TYPES.put("options", new TableType(Lua.LuaType.TABLE, true));
+    }
+
     public String name;
     public String authorName;
     public String description;
@@ -29,6 +49,8 @@ public final class LuaExtension extends LuaScript {
     public LuaValue fOnDraw;
     @LuaNillable
     public LuaValue fOnNewOptions;
+    @LuaNillable
+    public LuaValue fOnLevelLoad;
 
     public LuaCompatibleHashMap<String, Object> options;
     public final HashMap<String, TableType> optionTypes = new HashMap<>();
@@ -68,6 +90,7 @@ public final class LuaExtension extends LuaScript {
         fOnUpdate = tExtension.get("onUpdate");
         fOnDraw = tExtension.get("onDraw");
         fOnNewOptions = tExtension.get("onNewOptions");
+        fOnLevelLoad = tExtension.get("onLevelLoad");
 
         LuaValue tOptionTypes = tExtension.get("options");
         if (tOptionTypes.type() == Lua.LuaType.NIL) {
@@ -302,24 +325,5 @@ public final class LuaExtension extends LuaScript {
                 System.out.println(luaException.getMessage());
             }
         }
-    }
-
-    private static final HashMap<String, LuaScript.TableType> EXTENSION_TABLE_TYPES = new HashMap<>();
-
-    static {
-        EXTENSION_TABLE_TYPES.put("name", new LuaScript.TableType(Lua.LuaType.STRING, false));
-        EXTENSION_TABLE_TYPES.put("authorName", new LuaScript.TableType(Lua.LuaType.STRING, false));
-        EXTENSION_TABLE_TYPES.put("description", new LuaScript.TableType(Lua.LuaType.STRING, true));
-
-        EXTENSION_TABLE_TYPES.put("versionMajor", new LuaScript.TableType(Lua.LuaType.NUMBER, false));
-        EXTENSION_TABLE_TYPES.put("versionMinor", new LuaScript.TableType(Lua.LuaType.NUMBER, false));
-        EXTENSION_TABLE_TYPES.put("versionPatch", new LuaScript.TableType(Lua.LuaType.NUMBER, false));
-
-        EXTENSION_TABLE_TYPES.put("onLoad", new LuaScript.TableType(Lua.LuaType.FUNCTION, true));
-        EXTENSION_TABLE_TYPES.put("onUpdate", new LuaScript.TableType(Lua.LuaType.FUNCTION, true));
-        EXTENSION_TABLE_TYPES.put("onDraw", new LuaScript.TableType(Lua.LuaType.FUNCTION, true));
-        EXTENSION_TABLE_TYPES.put("onNewOptions", new TableType(Lua.LuaType.FUNCTION, true));
-
-        EXTENSION_TABLE_TYPES.put("options", new LuaScript.TableType(Lua.LuaType.TABLE, true));
     }
 }

@@ -47,6 +47,15 @@ public class TanksEventListener {
         if ((boolean) TanksLua.tanksLua.options.get("enableLevelScripts") && newScreen instanceof ScreenGame) {
             ScreenGame sg = ((ScreenGame) newScreen);
             LevelScript.tryLoadingLevelScript(sg.name);
+            for (LuaExtension luaExt: TanksLua.tanksLua.loadedLuaExtensions) {
+                LuaValue fOnLevelLoad = luaExt.fOnLevelLoad;
+                if (fOnLevelLoad.type() == Lua.LuaType.NIL) continue;
+
+                String levelName = sg.name;
+                if (levelName != null) levelName = levelName.replace(".tanks", "");
+
+                SafeLuaRunner.safeCall(fOnLevelLoad, levelName);
+            }
         }
 
         if (oldScreen instanceof ScreenGame && (!(newScreen instanceof ScreenGame))) LevelScript.currentLevelScript = null;
