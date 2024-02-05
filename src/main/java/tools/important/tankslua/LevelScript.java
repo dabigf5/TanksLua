@@ -2,6 +2,7 @@ package tools.important.tankslua;
 
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.LuaException;
+import party.iroiro.luajava.lua54.Lua54;
 import party.iroiro.luajava.value.LuaValue;
 
 import java.io.File;
@@ -32,7 +33,7 @@ public final class LevelScript extends LuaScript {
 
         if (this.fOnLoad.type() == Lua.LuaType.NIL) return;
 
-        SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(this.fOnLoad);
+        SafeLuaRunner.LuaResult result = SafeLuaRunner.safeCall(this.fOnLoad);
         if (result.status != Lua.LuaError.OK) {
             new Notification(Notification.NotificationType.WARN, 5, "The level script ran into an error in onLoad!");
         }
@@ -44,16 +45,22 @@ public final class LevelScript extends LuaScript {
         String nameNoExt = rawName.substring(0, rawName.length()-6);
         String levelLuaFileName = nameNoExt+".lua";
         String levelLuaFilePath = TanksLua.fullScriptPath+"/level/"+levelLuaFileName;
-        File levelLuaFile = new File(levelLuaFilePath);
-        if (!levelLuaFile.exists()) return;
+        {
+            File levelLuaFile = new File(levelLuaFilePath);
+            if (!levelLuaFile.exists()) return;
+        }
+        Lua luaStateForLevelScript = new Lua54();
+        luaStateForLevelScript.openLibraries();
+
         final int errNotifTime = 5;
-        LuaValue loadedFile = SafeLuaRunner.safeLoadFile(levelLuaFilePath);
-        if (loadedFile == null) {
+        SafeLuaRunner.LuaResult loadedFile = SafeLuaRunner.safeLoadFile(luaStateForLevelScript, levelLuaFilePath);
+
+        if (loadedFile.status != Lua.LuaError.OK) {
             new Notification(Notification.NotificationType.WARN, errNotifTime, levelLuaFileName+" failed to load");
             return;
         }
 
-        SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(loadedFile);
+        SafeLuaRunner.LuaResult result = SafeLuaRunner.safeCall(loadedFile.returns[0]);
 
         if (result.status != Lua.LuaError.OK) {
             new Notification(Notification.NotificationType.WARN, errNotifTime, levelLuaFileName+" ran into an error when running");
@@ -61,7 +68,6 @@ public final class LevelScript extends LuaScript {
         }
 
         LuaValue[] returns = result.returns;
-
         if (returns.length != 1) {
             new Notification(Notification.NotificationType.WARN, errNotifTime, levelLuaFileName+" did not return exactly one value!");
             return;
@@ -70,6 +76,8 @@ public final class LevelScript extends LuaScript {
         LuaValue tLevel = returns[0];
         try {
             currentLevelScript = new LevelScript(tLevel, levelLuaFileName);
+            currentLevelScript.luaState = luaStateForLevelScript;
+            TanksLib.openTanksLibrary(luaStateForLevelScript);
         } catch (LuaException luaException) {
             System.out.println(luaException.getMessage());
             new Notification(Notification.NotificationType.WARN,errNotifTime, levelLuaFileName+" failed to verify! See logs for more info");

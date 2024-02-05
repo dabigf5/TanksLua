@@ -8,6 +8,7 @@ import tanks.gui.screen.Screen;
 import tools.important.tankslua.LuaExtension;
 import tools.important.tankslua.LuaScript;
 import tools.important.tankslua.SafeLuaRunner;
+import tools.important.tankslua.TanksLua;
 import tools.important.tankslua.gui.extensionoption.Checkbox;
 import tools.important.tankslua.gui.extensionoption.ExtensionOptionElement;
 
@@ -53,7 +54,7 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
                 LuaExtension.saveExtensionOptions();
                 if (extension.fOnNewOptions.type() == Lua.LuaType.NIL) return;
 
-                SafeLuaRunner.safeCall(extension.fOnNewOptions, extension.options.getLuaTable(SafeLuaRunner.defaultState));
+                SafeLuaRunner.safeCall(extension.fOnNewOptions, extension.options.getLuaTable(TanksLua.tanksLua.internalLuaState));
             });
             yPositionMultiplier += yPositionMultiplierAdded;
         }

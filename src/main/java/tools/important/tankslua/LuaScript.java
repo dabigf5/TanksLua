@@ -10,6 +10,10 @@ import java.util.Map;
 public abstract class LuaScript {
     public String fileName;
 
+    /**
+     * The lua state which this script will use.
+     */
+    public Lua luaState;
     protected LuaScript() {} // for debugging purposes
     public void onVerificationError(String fileName, String problem) {
         System.out.println(fileName+": "+problem);

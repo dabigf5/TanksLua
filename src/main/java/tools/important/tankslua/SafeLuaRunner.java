@@ -17,17 +17,12 @@ public final class SafeLuaRunner {
     public static boolean autoLogErrors = true;
 
     /**
-     * The lua state that will be used for carrying out operations if none is passed to the method.
-     */
-    public static Lua defaultState;
-
-    /**
      * Calls the given lua function and properly handles any errors that happen with it.
      * @param userFunction The function to call
      * @param parameters The parameters to give that function
      * @return A record which describes if the operation succeeded or failed, its return values, or the amount of values it pushed onto the stack. The last two are mutually exclusive.
      */
-    public static UserCallResult safeCall(LuaValue userFunction, Object... parameters) {
+    public static LuaResult safeCall(LuaValue userFunction, Object... parameters) {
         return safeCall(true, userFunction, parameters);
     }
 
@@ -38,7 +33,7 @@ public final class SafeLuaRunner {
      * @param parameters The parameters to give that function
      * @return A UserCallResult record describing the result of the function call
      */
-    public static UserCallResult safeCall(boolean popReturns, LuaValue userFunction, Object... parameters) {
+    public static LuaResult safeCall(boolean popReturns, LuaValue userFunction, Object... parameters) {
         Lua luaState = userFunction.state();
 
         int top = luaState.getTop();
@@ -54,27 +49,27 @@ public final class SafeLuaRunner {
                 System.out.println("Lua error: "+result+"; "+ luaState.toString(luaState.getTop()));
             }
             luaState.pop(1);
-            return new UserCallResult(result);
+            return new LuaResult(result);
         }
 
 
         int returnCount = luaState.getTop() - top;
 
         if (!popReturns) {
-            return new UserCallResult(Lua.LuaError.OK, returnCount);
+            return new LuaResult(Lua.LuaError.OK, returnCount);
         }
 
         LuaValue[] values = new LuaValue[returnCount];
         for (int i = 0; i < returnCount; i++) {
             values[returnCount - i - 1] = luaState.get();
         }
-        return new UserCallResult(Lua.LuaError.OK, values);
+        return new LuaResult(Lua.LuaError.OK, values);
     }
 
     /**
-     * A static class which describes the result of a function call performed with safeCall.
+     * A static class which describes the result of a Lua operation.
      */
-    static class UserCallResult{
+    static class LuaResult {
         /**
          * The LuaError gotten by the call
          */
@@ -87,25 +82,16 @@ public final class SafeLuaRunner {
          * The amount of unpopped returns that are still on the stack. This will be 0 in the event that returns has anything in it.
          */
         public int unpoppedReturns;
-        public UserCallResult(Lua.LuaError status, LuaValue[] returns, int unpoppedReturns) {
+        public LuaResult(Lua.LuaError status, LuaValue[] returns, int unpoppedReturns) {
             this.status = status;
             this.returns = returns;
             this.unpoppedReturns = unpoppedReturns;
         }
-        public UserCallResult(Lua.LuaError status) {this(status,null,0);}
-        public UserCallResult(Lua.LuaError status, LuaValue[] returns) {this(status,returns,0);}
-        public UserCallResult(Lua.LuaError status, int unpoppedReturns) {this(status,null,unpoppedReturns);}
+        public LuaResult(Lua.LuaError status) {this(status,null,0);}
+        public LuaResult(Lua.LuaError status, LuaValue[] returns) {this(status,returns,0);}
+        public LuaResult(Lua.LuaError status, int unpoppedReturns) {this(status,null,unpoppedReturns);}
     }
-    /**
-     * Loads a Lua file, calls it, and properly handles any loading errors that may occur.
-     * This method uses a set of defaults to fill in the missing other parameters.
-     *
-     * @param filePathToLoad The path to the lua file you wish to load.
-     * @return The function loaded from the lua file, or null if the load failed
-     */
-    public static LuaValue safeLoadFile(String filePathToLoad) {
-        return safeLoadFile(defaultState, filePathToLoad);
-    }
+
     /**
      * Loads a Lua file, calls it, and properly handles any loading errors that may occur.
      * This method uses a set of defaults to fill in the missing other parameters.
@@ -114,7 +100,7 @@ public final class SafeLuaRunner {
      * @param filePathToLoad The path to the lua file you wish to load.
      * @return The function loaded from the lua file, or null if the load failed
      */
-    private static LuaValue safeLoadFile(Lua luaState, String filePathToLoad) {
+    public static LuaResult safeLoadFile(Lua luaState, String filePathToLoad) {
         return safeLoadFile(luaState, filePathToLoad, null);
     }
 
@@ -125,37 +111,29 @@ public final class SafeLuaRunner {
      * @param tEnv The environment to load the file in. Can be null.
      * @return The function loaded from the lua file, or null if the load failed
      */
-    public static LuaValue safeLoadFile(Lua luaState, String filePathToLoad, LuaValue tEnv) {
+    public static LuaResult safeLoadFile(Lua luaState, String filePathToLoad, LuaValue tEnv) {
         return safeCallLoadFunc(luaState, "loadfile", filePathToLoad, tEnv);
     }
 
-    /**
-     * Loads a string and properly handles any syntax errors that may occur.
-     * @param stringToLoad The string you wish to load
-     * @return That string loaded as a function, or null if the load failed
-     */
-    public static LuaValue loadStringAndHandleSyntaxErrors(String stringToLoad) {
-        return loadStringAndHandleSyntaxErrors(defaultState, stringToLoad);
-    }
     /**
      * Loads a string and properly handles any syntax errors that may occur.
      * @param luaState The lua state to load the string with
      * @param stringToLoad The string you wish to load
      * @return That string loaded as a function, or null if the load failed
      */
-    public static LuaValue loadStringAndHandleSyntaxErrors(Lua luaState, String stringToLoad) {
+    public static LuaResult safeLoadString(Lua luaState, String stringToLoad) {
         return safeCallLoadFunc(luaState, "load", stringToLoad, null);
     }
 
     /**
-     * A private utility function that will simply call a function with one argument, and in the given environment.
+     * A private utility function that will simply call a function with one argument, and in the given lua state.
      * @param luaState The lua state to call the function with.
      * @param funcName The name of the function
      * @param argument The one argument to pass to the function
      * @param tEnv The environment to call the function inside.
      * @return Either the function, or null if it failed.
      */
-    private static LuaValue safeCallLoadFunc(Lua luaState, String funcName, String argument, LuaValue tEnv) {
+    private static LuaResult safeCallLoadFunc(Lua luaState, String funcName, String argument, LuaValue tEnv) {
         LuaValue[] loadResult;
 
         if (tEnv != null) {
@@ -169,6 +147,6 @@ public final class SafeLuaRunner {
             if (autoLogErrors) System.out.println("Lua: Error loading! "+loadResult[1].toJavaObject());
             return null;
         }
-        return fLoadedString;
+        return new LuaResult(Lua.LuaError.OK, loadResult);
     }
 }

@@ -13,7 +13,7 @@ public final class TanksLib {
      * Load the tanks library to the given lua state
      * @param luaState The lua state to load the tanks library onto
      */
-    public static void loadTanksLibrary(Lua luaState) {
+    public static void openTanksLibrary(Lua luaState) {
         luaState.createTable(0,0);
         int tanksLibStackIndex = luaState.getTop();
 

@@ -30,8 +30,9 @@ public final class TanksLua extends Extension {
     public static final String version = "TanksLua Alpha 0.1.0";
     public static final String scriptPath = Game.directoryPath+"/scripts";
     public static final String fullScriptPath = System.getProperty("user.home").replace('\\', '/')+scriptPath;
-    private static final boolean enableEvalBox = false;
-    public Lua coreLuaState;
+    private static final boolean enableEvalBox = true;
+    public Lua evalBoxLuaState;
+    public Lua internalLuaState;
     public LuaCompatibleHashMap<String, Object> options;
     public LuaCompatibleArrayList<LuaExtension> loadedLuaExtensions;
     public static final HashMap<String, Lua.LuaType> optionTypes = new HashMap<>();
@@ -65,7 +66,7 @@ public final class TanksLua extends Extension {
         File dir = new File(path);
         if (!dir.mkdir()) {
             throw new RuntimeException("Unable to create directory "+path);
-        };
+        }
     }
     private static void makeEmptyFile(String path) {
         File file = new File(path);
@@ -99,14 +100,12 @@ public final class TanksLua extends Extension {
         if (!new File(fullScriptPath).exists())
             initializeScriptsDir();
 
-        coreLuaState = new Lua54();
-        coreLuaState.openLibraries();
-
-        SafeLuaRunner.defaultState = coreLuaState;
+        evalBoxLuaState = new Lua54();
+        evalBoxLuaState.openLibraries();
 
         loadOptions();
         eventListener = new TanksEventListener();
-        TanksLib.loadTanksLibrary(coreLuaState);
+        TanksLib.openTanksLibrary(evalBoxLuaState);
 
         LuaExtension.registerExtensionsFromDir();
 
@@ -139,9 +138,9 @@ public final class TanksLua extends Extension {
         evalCodeBox.maxChars = 1000; // who's gonna write lua code longer than 1000 characters
 
         evalRunButton = new Button(screen.centerX-screen.objXSpace*1.37, screen.objYSpace*2, screen.objWidth, screen.objHeight, "Evaluate", () -> {
-                LuaValue fLoadedString = SafeLuaRunner.loadStringAndHandleSyntaxErrors(evalCodeBox.inputText);
-                if (fLoadedString == null) return;
-                SafeLuaRunner.safeCall(fLoadedString);
+                SafeLuaRunner.LuaResult loadResult = SafeLuaRunner.safeLoadString(evalBoxLuaState, evalCodeBox.inputText);
+                if (loadResult.status != Lua.LuaError.OK) return;
+                SafeLuaRunner.safeCall(loadResult.returns[0]);
         });
     }
     private static final HashMap<String, Object> defaultOptions = new HashMap<>();
@@ -149,7 +148,7 @@ public final class TanksLua extends Extension {
         defaultOptions.put("enableLevelScripts", false);
     }
     public void loadOptions() {
-        LuaValue fDoFile = coreLuaState.get("dofile");
+        LuaValue fDoFile = evalBoxLuaState.get("dofile");
 
         LuaValue[] returns = fDoFile.call(fullScriptPath+"/options.lua");
 

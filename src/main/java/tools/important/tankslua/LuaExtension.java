@@ -2,6 +2,7 @@ package tools.important.tankslua;
 
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.LuaException;
+import party.iroiro.luajava.lua54.Lua54;
 import party.iroiro.luajava.value.LuaValue;
 import tools.important.tankslua.luacompatible.LuaCompatibleHashMap;
 
@@ -201,12 +202,12 @@ public final class LuaExtension extends LuaScript {
         this.versionPatch = 0;
     }
     private static LuaValue loadExtensionOptionsTable() {
-        LuaValue loaded = SafeLuaRunner.safeLoadFile(TanksLua.fullScriptPath+"/extensionOptions.lua");
+        SafeLuaRunner.LuaResult loaded = SafeLuaRunner.safeLoadFile(TanksLua.tanksLua.internalLuaState,TanksLua.fullScriptPath+"/extensionOptions.lua");
 
-        if (loaded == null)
+        if (loaded.status != Lua.LuaError.OK)
             throw new LuaException("extension options file failed to load");
 
-        SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(loaded);
+        SafeLuaRunner.LuaResult result = SafeLuaRunner.safeCall(loaded.returns[0]);
 
         if (result.status != Lua.LuaError.OK)
             throw new LuaException("extension options file failed to run");
@@ -233,7 +234,6 @@ public final class LuaExtension extends LuaScript {
             );
         }
         if (true) return;*/
-        LuaValue fLoadFile = SafeLuaRunner.defaultState.get("loadfile");
 
         File extensionsDirectory = new File(TanksLua.fullScriptPath + "/extensions/");
         File[] extensionLuaFiles = extensionsDirectory.listFiles();
@@ -246,16 +246,20 @@ public final class LuaExtension extends LuaScript {
                 if (!fileName.endsWith(".lua")) {
                     continue;
                 }
+                Lua luaStateForExtension = new Lua54();
+                luaStateForExtension.openLibraries();
+                TanksLib.openTanksLibrary(luaStateForExtension);
 
-                LuaValue[] loadFileResult = fLoadFile.call(file.getAbsolutePath());
+                SafeLuaRunner.LuaResult callResult = SafeLuaRunner.safeLoadFile(luaStateForExtension, file.getAbsolutePath());
 
+                LuaValue[] loadFileResult = callResult.returns;
                 if (loadFileResult.length == 2) {
                     new Notification(Notification.NotificationType.WARN, 5, "Error loading extension " + fileName + "! See log for details");
                     throw new LuaException("error loading extension " + fileName + ": " + loadFileResult[1].toJavaObject());
                 }
 
                 LuaValue fLoadedFile = loadFileResult[0];
-                SafeLuaRunner.UserCallResult result = SafeLuaRunner.safeCall(fLoadedFile);
+                SafeLuaRunner.LuaResult result = SafeLuaRunner.safeCall(fLoadedFile);
 
                 if (result.status != Lua.LuaError.OK) {
                     new Notification(Notification.NotificationType.WARN, 5, "Error running extension " + fileName + "! See logs for more info");
@@ -276,7 +280,7 @@ public final class LuaExtension extends LuaScript {
                 LuaValue fOnNewOptions = extension.fOnNewOptions;
 
                 if (fOnLoad.type() != Lua.LuaType.NIL) {
-                    SafeLuaRunner.UserCallResult onLoadResult = SafeLuaRunner.safeCall(fOnLoad);
+                    SafeLuaRunner.LuaResult onLoadResult = SafeLuaRunner.safeCall(fOnLoad);
 
                     if (onLoadResult.status != Lua.LuaError.OK) {
                         System.out.println("extension " + extension.fileName + ": onLoad ran into an error ");
@@ -284,7 +288,7 @@ public final class LuaExtension extends LuaScript {
                     }
                 }
                 if (fOnNewOptions.type() != Lua.LuaType.NIL) {
-                    SafeLuaRunner.UserCallResult onLoadResult = SafeLuaRunner.safeCall(fOnNewOptions, extension.options.getLuaTable(SafeLuaRunner.defaultState));
+                    SafeLuaRunner.LuaResult onLoadResult = SafeLuaRunner.safeCall(fOnNewOptions, extension.options.getLuaTable(extension.luaState));
 
                     if (onLoadResult.status != Lua.LuaError.OK) {
                         System.out.println("extension " + extension.fileName + ": onNewOptions ran into an error ");
