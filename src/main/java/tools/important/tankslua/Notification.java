@@ -121,7 +121,7 @@ public class Notification {
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             double imult = (i+1);
-            Drawing.drawing.drawText(x, yTopLeft + (height*imult)/5, line);
+            Drawing.drawing.drawInterfaceText(x, yTopLeft + (height*imult)/5, line);
         }
 
 
