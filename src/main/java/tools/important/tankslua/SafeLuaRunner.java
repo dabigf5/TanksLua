@@ -145,7 +145,7 @@ public final class SafeLuaRunner {
         LuaValue fLoadedString = loadResult[0];
         if (fLoadedString.type() == Lua.LuaType.NIL) {
             if (autoLogErrors) System.out.println("Lua: Error loading! "+loadResult[1].toJavaObject());
-            return null;
+            return new LuaResult(Lua.LuaError.SYNTAX); // i'll just assume it's a syntax error
         }
         return new LuaResult(Lua.LuaError.OK, loadResult);
     }

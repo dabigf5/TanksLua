@@ -30,7 +30,6 @@ public final class TanksLua extends Extension {
     public static final String version = "TanksLua Alpha 0.1.0";
     public static final String scriptPath = Game.directoryPath+"/scripts";
     public static final String fullScriptPath = System.getProperty("user.home").replace('\\', '/')+scriptPath;
-    private static final boolean enableEvalBox = true;
     public Lua evalBoxLuaState;
     public Lua internalLuaState;
     public LuaCompatibleHashMap<String, Object> options;
@@ -39,6 +38,7 @@ public final class TanksLua extends Extension {
 
     static {
         optionTypes.put("enableLevelScripts", Lua.LuaType.BOOLEAN);
+        optionTypes.put("enableEvalBox", Lua.LuaType.BOOLEAN);
     }
 
 
@@ -68,19 +68,21 @@ public final class TanksLua extends Extension {
             throw new RuntimeException("Unable to create directory "+path);
         }
     }
-    private static void makeEmptyFile(String path) {
-        File file = new File(path);
+    // this may be needed one day
+//    private static void makeEmptyFile(String path) {
+//        File file = new File(path);
+//
+//        try {
+//            if (!file.createNewFile()) {
+//                throw new RuntimeException("Unable to create file "+path);
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            throw new RuntimeException("Unable to create file "+path);
+//        }
+//    }
 
-        try {
-            if (!file.createNewFile()) {
-                throw new RuntimeException("Unable to create file "+path);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Unable to create file "+path);
-        }
-    }
-    private static void makeFileWithContents(String path, String contents) {
+    private static void makeFileWithContents(String path, @SuppressWarnings("SameParameterValue") String contents) {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(path));
             writer.write(contents);
@@ -99,6 +101,9 @@ public final class TanksLua extends Extension {
 
         if (!new File(fullScriptPath).exists())
             initializeScriptsDir();
+
+        internalLuaState = new Lua54();
+        internalLuaState.openLibraries(); // not sure if really needed, but not taking risks either
 
         evalBoxLuaState = new Lua54();
         evalBoxLuaState.openLibraries();
@@ -119,8 +124,6 @@ public final class TanksLua extends Extension {
                 "The options for the TanksLua extension"
         );
 
-        if (!enableEvalBox) { return; }
-
         evalCodeBox = new TextBox(screen.centerX, screen.objYSpace, screen.objWidth*4, screen.objHeight, "Lua Code", () -> {}, "");
         evalCodeBox.allowLetters = true;
         evalCodeBox.allowSpaces = true;
@@ -139,18 +142,45 @@ public final class TanksLua extends Extension {
 
         evalRunButton = new Button(screen.centerX-screen.objXSpace*1.37, screen.objYSpace*2, screen.objWidth, screen.objHeight, "Evaluate", () -> {
                 SafeLuaRunner.LuaResult loadResult = SafeLuaRunner.safeLoadString(evalBoxLuaState, evalCodeBox.inputText);
-                if (loadResult.status != Lua.LuaError.OK) return;
-                SafeLuaRunner.safeCall(loadResult.returns[0]);
+                //todo: make the error show up in the notification
+                // additionally, make the below value proportional to the length of the code so you can read it
+                final double youFuckedUpNotifSeconds = 1.3;
+
+                if (loadResult.status != Lua.LuaError.OK) {
+                    new Notification(Notification.NotificationType.WARN, youFuckedUpNotifSeconds, "Your code failed to load! See logs for more info");
+                    return;
+                }
+
+                SafeLuaRunner.LuaResult callResult = SafeLuaRunner.safeCall(loadResult.returns[0]);
+
+                if (callResult.status != Lua.LuaError.OK) {
+                    new Notification(Notification.NotificationType.WARN, youFuckedUpNotifSeconds, "Your code failed to run! See logs for more info");
+                    return;
+                }
+
+                new Notification(Notification.NotificationType.INFO, 1,"Successfully ran your code!");
         });
     }
     private static final HashMap<String, Object> defaultOptions = new HashMap<>();
     static {
         defaultOptions.put("enableLevelScripts", false);
+        defaultOptions.put("enableEvalBox", false);
     }
     public void loadOptions() {
-        LuaValue fDoFile = evalBoxLuaState.get("dofile");
+        SafeLuaRunner.LuaResult result = SafeLuaRunner.safeLoadFile(internalLuaState, fullScriptPath+"/options.lua");
 
-        LuaValue[] returns = fDoFile.call(fullScriptPath+"/options.lua");
+        if (result.status != Lua.LuaError.OK) {
+            throw new LuaException("options.lua failed to load!");
+        }
+
+        LuaValue fLoadedFunction = result.returns[0];
+
+        SafeLuaRunner.LuaResult loadedCallResult = SafeLuaRunner.safeCall(fLoadedFunction);
+        if (loadedCallResult.status != Lua.LuaError.OK) {
+            throw new LuaException("options.lua failed to run!");
+        }
+
+        LuaValue[] returns = loadedCallResult.returns;
 
         if (returns.length != 1) {
             throw new LuaException("options.lua did not return exactly one value!");
@@ -200,7 +230,7 @@ public final class TanksLua extends Extension {
                 optionValueStringified = "nil";
             }
 
-            newOptionsScript.append("\t").append(optionName).append(" = ").append(optionValueStringified).append("\n");
+            newOptionsScript.append("\t").append(optionName).append(" = ").append(optionValueStringified).append(",\n");
         }
         newOptionsScript.append("}");
         try {
@@ -232,7 +262,7 @@ public final class TanksLua extends Extension {
             enterLuaOptionsButton.draw();
         }
 
-        if (enableEvalBox) {
+        if (options != null && (boolean)options.get("enableEvalBox")) {
             drawExtraMouseTarget = true;
             evalCodeBox.draw();
             evalRunButton.draw();
@@ -256,7 +286,7 @@ public final class TanksLua extends Extension {
             enterLuaOptionsButton.update();
         }
 
-        if (enableEvalBox) {
+        if (options != null && (boolean) options.get("enableEvalBox")) {
             evalCodeBox.update();
             evalRunButton.update();
         }
