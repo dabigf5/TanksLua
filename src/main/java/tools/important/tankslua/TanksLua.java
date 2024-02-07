@@ -131,14 +131,6 @@ public final class TanksLua extends Extension {
         evalCodeBox.allowSpaces = true;
         evalCodeBox.enableCaps = true;
         evalCodeBox.enablePunctuation = true;
-        evalCodeBox.enableHover = true;
-        evalCodeBox.hoverText = new String[]{
-                "This evaluate box has special power,",
-                "It has full access to all lua libraries, including the dangerous ones!",
-                "",
-                "Special globals:",
-                "`tanks` allows you to interface with Tanks in the way normal scripts do."
-        };
 
         evalCodeBox.maxChars = 1000; // who's gonna write lua code longer than 1000 characters
 
