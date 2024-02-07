@@ -50,6 +50,10 @@ public final class TanksLua extends Extension {
 
     public ArrayList<Notification> activeNotifications = new ArrayList<>();
 
+    @Override
+    public void loadResources() {
+        registerMusic("lua_options.ogg");
+    }
 
     public TanksLua() {
         super("TanksLua");

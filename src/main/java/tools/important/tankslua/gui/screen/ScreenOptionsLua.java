@@ -2,6 +2,7 @@ package tools.important.tankslua.gui.screen;
 
 import tanks.Drawing;
 import tanks.Game;
+import tanks.Panel;
 import tanks.gui.Button;
 import tanks.gui.screen.Screen;
 import tanks.gui.screen.ScreenOptions;
@@ -16,6 +17,9 @@ public class ScreenOptionsLua extends Screen {
     public Button enableEvalBoxButton;
 
     public ScreenOptionsLua() {
+        this.music = "menu_options_lua.ogg";
+        this.musicID = "menu";
+        Panel.forceRefreshMusic = true;
         backButton = new Button(centerX, centerY + objYSpace * 3.5, objWidth, objHeight, "Back", () -> Game.screen = new ScreenOptions());
 
         enableLevelScriptsButton = new ToggleOptionButton(centerX, centerY-objHeight*3, objWidth, objHeight, "Level scripts",

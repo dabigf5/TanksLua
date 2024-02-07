@@ -30,6 +30,8 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
     private final double optionsTextY = centerY-objHeight*2;
     public ScreenOptionsLuaInspectExtension(LuaExtension extension) {
         this.extension = extension;
+        this.music = "menu_options_lua.ogg";
+        this.musicID = "menu";
 
         double yPositionMultiplier = beginningOptionYPositionMultiplier;
         for (Map.Entry<String, LuaScript.TableType> optionType : extension.optionTypes.entrySet()) {
