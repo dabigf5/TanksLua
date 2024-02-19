@@ -30,7 +30,7 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
     private final double optionsTextY = centerY-objHeight*2;
     public ScreenOptionsLuaInspectExtension(LuaExtension extension) {
         this.extension = extension;
-        this.music = "menu_options_lua.ogg";
+        this.music = "menu_options.ogg";
         this.musicID = "menu";
 
         double yPositionMultiplier = beginningOptionYPositionMultiplier;

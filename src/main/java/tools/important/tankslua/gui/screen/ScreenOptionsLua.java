@@ -17,7 +17,7 @@ public class ScreenOptionsLua extends Screen {
     public Button enableEvalBoxButton;
 
     public ScreenOptionsLua() {
-        this.music = "menu_options_lua.ogg";
+        this.music = "menu_options.ogg";
         this.musicID = "menu";
         Panel.forceRefreshMusic = true;
         backButton = new Button(centerX, centerY + objYSpace * 3.5, objWidth, objHeight, "Back", () -> Game.screen = new ScreenOptions());

@@ -15,7 +15,7 @@ public class ScreenOptionsLuaExtensionList extends Screen {
     private ButtonList extensionButtonList;
 
     public ScreenOptionsLuaExtensionList() {
-        this.music = "menu_options_lua.ogg";
+        this.music = "menu_options.ogg";
         this.musicID = "menu";
 
         backButton = new Button(centerX, centerY + objYSpace * 5.4, objWidth, objHeight, "Back", () -> Game.screen = new ScreenOptionsLua());
