@@ -111,7 +111,7 @@ public final class TanksLua extends Extension {
         loadOptions();
         eventListener = new TanksEventListener();
         TanksLib.openTanksLibrary(evalBoxLuaState);
-
+        JavaLibExtras.openJavaLibExtras(evalBoxLuaState);
         LuaExtension.registerExtensionsFromDir();
 
         Screen screen = Game.screen;

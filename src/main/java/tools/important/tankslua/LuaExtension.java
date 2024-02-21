@@ -272,6 +272,7 @@ public final class LuaExtension extends LuaScript {
                 Lua luaStateForExtension = new Lua54();
                 luaStateForExtension.openLibraries();
                 TanksLib.openTanksLibrary(luaStateForExtension);
+                JavaLibExtras.openJavaLibExtras(luaStateForExtension);
 
                 SafeLuaRunner.LuaResult callResult = SafeLuaRunner.safeLoadFile(luaStateForExtension, file.getAbsolutePath());
 
