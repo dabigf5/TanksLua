@@ -5,6 +5,7 @@ import party.iroiro.luajava.LuaException;
 import party.iroiro.luajava.value.LuaValue;
 import tanks.Drawing;
 import tanks.Game;
+import tanks.ModAPI;
 
 public final class TanksLib {
     private TanksLib(){}
@@ -95,6 +96,20 @@ public final class TanksLib {
 
             return 0;
         });
+        luaState.setTable(tanksLibStackIndex);
+
+
+        boolean isModApi;
+        try {
+            //noinspection JavaReflectionMemberAccess
+            ModAPI.class.getDeclaredField("version"); // this field exists in the newer versions of modapi, but in the crusty dusty ancient version vanilla tanks uses, it doesn't
+            isModApi = true;
+        } catch (NoSuchFieldException ignored) {
+            isModApi = false;
+        }
+
+        luaState.push("isModApi");
+        luaState.push(isModApi);
         luaState.setTable(tanksLibStackIndex);
 
         luaState.setGlobal("tanks");
