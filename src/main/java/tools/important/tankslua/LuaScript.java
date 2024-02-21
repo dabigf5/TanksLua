@@ -83,7 +83,7 @@ public abstract class LuaScript {
         }
     }
 
-    static class VerificationResult {
+    public static class VerificationResult {
         public boolean verified;
         public String message;
         private VerificationResult(boolean verified, String message) {

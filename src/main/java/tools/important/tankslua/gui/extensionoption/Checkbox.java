@@ -3,7 +3,6 @@ package tools.important.tankslua.gui.extensionoption;
 import tanks.Drawing;
 import tanks.Game;
 import tanks.gui.Button;
-import tools.important.tankslua.LuaExtension;
 
 import java.util.function.Consumer;
 

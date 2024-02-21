@@ -70,7 +70,7 @@ public final class SafeLuaRunner {
     /**
      * A static class which describes the result of a Lua operation.
      */
-    static class LuaResult {
+    public static class LuaResult {
         /**
          * The LuaError gotten by the call
          */

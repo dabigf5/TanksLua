@@ -17,7 +17,7 @@ public class Notification {
     public double totalSeconds;
     public double secondsLeft;
     public String text;
-    enum NotificationType {
+    public enum NotificationType {
         INFO,
         WARN,
     }
