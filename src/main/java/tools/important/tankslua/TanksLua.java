@@ -26,11 +26,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class TanksLua extends Extension {
+    /**
+     * The one and only instance of TanksLua.
+     */
     public static TanksLua tanksLua;
     public static final String version = "TanksLua Alpha 0.2.0";
     public static final String scriptPath = Game.directoryPath + "/scripts";
     public static final String fullScriptPath = System.getProperty("user.home").replace('\\', '/') + scriptPath;
+    /**
+     * The lua state used by the lua evaluation box
+     */
     public Lua evalBoxLuaState;
+    /**
+     * A lua state which is used for miscellaneous operations which don't need any specific lua state.<p></p>
+     * As a rule of thumb, it should never be written to (such as having globals declared within it).<p></p>
+     * Additionally, no code given to us by the user will be ran with this lua state. To summarize:<p></p>
+     * This lua state's purpose is to be a neutral, unbiased lua state which everyone goes to for advice.
+     */
     public Lua internalLuaState;
     public LuaCompatibleHashMap<String, Object> options;
     public LuaCompatibleArrayList<LuaExtension> loadedLuaExtensions;
