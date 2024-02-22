@@ -35,7 +35,7 @@ public class ScreenOptionsLuaExtensionList extends Screen {
             buttons.add(new Button(0,0,0,0,
                     extension.name,
                     () -> Game.screen = new ScreenOptionsLuaInspectExtension(extension),
-                    "created by "+extension.authorName+"---["+extension.fileName+"]"
+                    "Created by "+extension.authorName+"---["+extension.fileName+"]"
             ));
         }
 
