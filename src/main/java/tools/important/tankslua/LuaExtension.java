@@ -218,11 +218,19 @@ public final class LuaExtension extends LuaScript {
         this.name = name;
         this.authorName = authorName;
         this.fileName = fileName;
-        this.description = "nil";
+        this.description = "who up describing they extension";
 
         this.versionMajor = 0;
         this.versionMinor = 1;
         this.versionPatch = 0;
+
+        LuaValue nil = TanksLua.tanksLua.internalLuaState.fromNull();
+
+        this.fOnDraw = nil;
+        this.fOnUpdate = nil;
+        this.fOnNewOptions = nil;
+        this.fOnLoad = nil;
+        this.fOnLevelLoad = nil;
     }
     private static LuaValue loadExtensionOptionsTable() {
         SafeLuaRunner.LuaResult loaded = SafeLuaRunner.safeLoadFile(TanksLua.tanksLua.internalLuaState,TanksLua.fullScriptPath+"/extensionOptions.lua");
