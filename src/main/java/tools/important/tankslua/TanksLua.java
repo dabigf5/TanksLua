@@ -265,7 +265,6 @@ public final class TanksLua extends Extension {
         boolean drawExtraMouseTarget = false;
 
         Screen screen = Game.screen;
-
         if (screen instanceof ScreenOptions) {
             drawExtraMouseTarget = true;
             enterLuaOptionsButton.draw();
