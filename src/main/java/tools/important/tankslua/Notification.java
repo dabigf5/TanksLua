@@ -88,10 +88,10 @@ public class Notification {
         int g = color.getGreen();
         int b = color.getBlue();
 
-        double width = screen.objWidth*1.3;
-        double height = screen.objHeight*3;
+        double width = screen.objWidth;
+        double height = screen.objHeight * 2;
 
-        double x = screen.centerX*2.3-width;
+        double x = screen.centerX*2.25-width;
         double y = screen.centerY*2.1-(height*(notifIndex *1.1));
 
         double mx = Drawing.drawing.getInterfaceMouseX();
@@ -123,8 +123,6 @@ public class Notification {
             double imult = (i+1);
             Drawing.drawing.drawInterfaceText(x, yTopLeft + (height*imult)/5, line);
         }
-
-
 
         Drawing.drawing.setColor(r*0.6,g*0.9,b*0.6, Math.min(alpha *1.3, 255));
 
