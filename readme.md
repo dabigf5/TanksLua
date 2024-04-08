@@ -10,24 +10,24 @@ in order to set up one, you create a lua file in `.tanks/scripts/level/` which i
 
 here's an example level script that does completely nothing:
 ```lua
-local lvl = {}
+local level = {}
 
-return lvl
+return level
 ```
 
 now here's one that prints "loaded" to the console when it's loaded, and "updated" to the console every frame:
 ```lua
-local lvl = {}
+local level = {}
 
-function lvl.onLoad()
+function level.onLoad()
     print("loaded")
 end
 
-function lvl.onUpdate()
+function level.onUpdate()
     print("updated")
 end
 
-return lvl
+return level
 ```
 
 ### Extension Example
@@ -37,7 +37,7 @@ in order to create an extension, create a lua file in `.tanks/scripts/extensions
 here's an example of an extension that does completely nothing:
 
 ```lua
-return {
+local extension = {
     name = "My Extension",
     authorName = "you",
     description = "a simple extension that does nothing",
@@ -46,11 +46,13 @@ return {
     versionMinor = 1,
     versionPatch = 0,
 }
+
+return extension
 ```
 
 and here's one that prints "loaded" to the console when it's loaded, and "updated" to the console every frame:
 ```lua
-return {
+local extension = {
     name = "My Extension",
     authorName = "you",
     description = "a simple extension that does something",
@@ -58,21 +60,24 @@ return {
     versionMajor = 0,
     versionMinor = 2,
     versionPatch = 0,
-    
-    onLoad = function() 
-        print("loaded")
-    end,
-
-    onUpdate = function()
-        print("updated")
-    end,
 }
+
+function extension.onLoad()
+    print("loaded")
+end
+
+function extension.onUpdate()
+        print("updated")
+end
+
+return extension
 ```
 
 extensions can also have options, accessible through the Lua Options menu (only booleans are supported right now):
 ```lua
 local enableUpdatePrint
-return {
+
+local extension = {
     name = "My Extension",
     authorName = "you",
     description = "a simple extension that does something and has options",
@@ -84,18 +89,20 @@ return {
     options = {
         enableUpdatePrint = {type="boolean", default=true}
     },
-    
-    onLoad = function() 
-        print("loaded")
-    end,
-    
-    onNewOptions = function(optionsT)
-        enableUpdatePrint = optionsT.enableUpdatePrint
-    end,
+}
 
-    onUpdate = function()
+function extension.onLoad() 
+    print("loaded")
+end
+
+function extension.onNewOptions(optionsT)
+        enableUpdatePrint = optionsT.enableUpdatePrint
+end
+
+function extension.onUpdate()
         if not enableUpdatePrint then return end
         print("updated")
-    end,
-}
+end
+
+return extension
 ```
