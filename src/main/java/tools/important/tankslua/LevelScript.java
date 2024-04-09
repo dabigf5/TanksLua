@@ -77,8 +77,7 @@ public final class LevelScript extends LuaScript {
         try {
             currentLevelScript = new LevelScript(tLevel, levelLuaFileName);
             currentLevelScript.luaState = luaStateForLevelScript;
-            TanksLib.openTanksLibrary(luaStateForLevelScript);
-            JavaLibExtras.openJavaLibExtras(luaStateForLevelScript);
+            TanksLua.openCustomLibs(luaStateForLevelScript);
         } catch (LuaException luaException) {
             System.out.println(luaException.getMessage());
             new Notification(Notification.NotificationType.WARN,errNotifTime, levelLuaFileName+" failed to verify! See logs for more info");

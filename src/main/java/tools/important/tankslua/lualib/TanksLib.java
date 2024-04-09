@@ -1,4 +1,4 @@
-package tools.important.tankslua;
+package tools.important.tankslua.lualib;
 
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.LuaException;
@@ -6,15 +6,14 @@ import party.iroiro.luajava.value.LuaValue;
 import tanks.Drawing;
 import tanks.Game;
 import tanks.ModAPI;
+import tools.important.tankslua.Notification;
 
-public final class TanksLib {
-    private TanksLib(){}
-
+public final class TanksLib implements LuaLib {
     /**
      * Load the tanks library to the given lua state
      * @param luaState The lua state to load the tanks library onto
      */
-    public static void openTanksLibrary(Lua luaState) {
+    public void open(Lua luaState) {
         luaState.createTable(0,0);
         int tanksLibStackIndex = luaState.getTop();
 

@@ -1,12 +1,11 @@
-package tools.important.tankslua;
+package tools.important.tankslua.lualib;
 
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.LuaException;
 
-public class JavaLibExtras {
-    private JavaLibExtras() {}
-
-    public static void openJavaLibExtras(Lua luaState) {
+public class JavaLibExtras implements LuaLib {
+    @Override
+    public void open(Lua luaState) {
         luaState.getGlobal("java");
         int javaLibStackIndex = luaState.getTop();
 

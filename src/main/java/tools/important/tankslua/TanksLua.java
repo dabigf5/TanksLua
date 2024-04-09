@@ -14,6 +14,9 @@ import tanks.gui.TextBox;
 import tanks.gui.screen.Screen;
 import tanks.gui.screen.ScreenOptions;
 import tools.important.tankslua.gui.screen.ScreenOptionsLua;
+import tools.important.tankslua.lualib.JavaLibExtras;
+import tools.important.tankslua.lualib.LuaLib;
+import tools.important.tankslua.lualib.TanksLib;
 import tools.important.tankslua.luacompatible.LuaCompatibleArrayList;
 import tools.important.tankslua.luacompatible.LuaCompatibleHashMap;
 
@@ -47,26 +50,23 @@ public final class TanksLua extends Extension {
     public LuaCompatibleHashMap<String, Object> options;
     public LuaCompatibleArrayList<LuaExtension> loadedLuaExtensions;
     public static final HashMap<String, Lua.LuaType> optionTypes = new HashMap<>();
-
     static {
         optionTypes.put("enableLevelScripts", Lua.LuaType.BOOLEAN);
         optionTypes.put("enableEvalBox", Lua.LuaType.BOOLEAN);
     }
 
-
     public TextBox evalCodeBox;
     public Button evalRunButton;
 
     public Button enterLuaOptionsButton;
-    public TanksEventListener eventListener;
-
+    public TanksEventListener eventListener = new TanksEventListener();
     public ArrayList<Notification> activeNotifications = new ArrayList<>();
 
     public TanksLua() {
         super("TanksLua");
     }
 
-    public static void initializeScriptsDir() {
+    private static void initializeScriptsDir() {
         makeEmptyDirectory(fullScriptPath);
         makeEmptyDirectory(fullScriptPath + "/extensions");
         makeEmptyDirectory(fullScriptPath + "/level");
@@ -104,7 +104,15 @@ public final class TanksLua extends Extension {
             throw new RuntimeException("Unable to create file " + path);
         }
     }
-
+    private static final LuaLib[] defaultLibraries = {
+            new TanksLib(),
+            new JavaLibExtras(),
+    };
+    public static void openCustomLibs(Lua luaState) {
+        for (LuaLib lib : defaultLibraries) {
+            lib.open(luaState);
+        }
+    }
     @Override
     public void setUp() {
         tanksLua = this;
@@ -121,9 +129,7 @@ public final class TanksLua extends Extension {
         evalBoxLuaState.openLibraries();
 
         loadOptions();
-        eventListener = new TanksEventListener();
-        TanksLib.openTanksLibrary(evalBoxLuaState);
-        JavaLibExtras.openJavaLibExtras(evalBoxLuaState);
+        openCustomLibs(evalBoxLuaState);
         LuaExtension.registerExtensionsFromDir();
 
         Screen screen = Game.screen;
