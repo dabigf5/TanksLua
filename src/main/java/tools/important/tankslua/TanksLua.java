@@ -41,9 +41,9 @@ public final class TanksLua extends Extension {
      */
     public Lua evalBoxLuaState;
     /**
-     * A lua state which is used for miscellaneous operations which don't need any specific lua state.<p></p>
-     * As a rule of thumb, it should never be written to (such as having globals declared within it).<p></p>
-     * Additionally, no code given to us by the user will be ran with this lua state. To summarize:<p></p>
+     * A lua state which is used for miscellaneous operations which don't need any specific lua state.<br><br>
+     * As a rule of thumb, it should never be written to (such as having globals declared within it).<br><br>
+     * Additionally, no code given to us by the user will be ran with this lua state. To summarize:<br>
      * This lua state's purpose is to be a neutral, unbiased lua state which everyone goes to for advice.
      */
     public Lua internalLuaState;
