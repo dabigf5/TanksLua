@@ -4,6 +4,8 @@ import party.iroiro.luajava.Consts;
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.value.LuaValue;
 
+import java.io.File;
+
 /**
  * A class purely with static members which is for running lua functions
  * if it's unknown whether the function will throw a lua error.
@@ -100,6 +102,18 @@ public final class SafeLuaRunner {
             this(status, null, 0);
             this.errorMessage = errorMessage;
         }
+    }
+
+    /**
+     * Loads a Lua file, calls it, and properly handles any loading errors that may occur.
+     * This method uses a set of defaults to fill in the missing other parameters.
+     *
+     * @param luaState The lua state to use to load the file.
+     * @param file The lua file you wish to load.
+     * @return The function loaded from the lua file, or null if the load failed
+     */
+    public static LuaResult safeLoadFile(Lua luaState, File file) {
+        return safeLoadFile(luaState, file.getPath(), null);
     }
 
     /**

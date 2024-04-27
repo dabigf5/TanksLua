@@ -1,12 +1,13 @@
 package tools.important.tankslua.gui.screen;
 
 import party.iroiro.luajava.Lua;
+import party.iroiro.luajava.value.LuaValue;
 import tanks.Drawing;
 import tanks.Game;
 import tanks.gui.Button;
 import tanks.gui.screen.Screen;
-import tools.important.tankslua.LuaExtension;
-import tools.important.tankslua.LuaScript;
+import tools.important.tankslua.luapackage.LuaExtension;
+import tools.important.tankslua.luapackage.verification.EntryType;
 import tools.important.tankslua.SafeLuaRunner;
 import tools.important.tankslua.TanksLua;
 import tools.important.tankslua.gui.extensionoption.Checkbox;
@@ -34,7 +35,8 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
         this.musicID = "menu";
 
         double yPositionMultiplier = beginningOptionYPositionMultiplier;
-        for (Map.Entry<String, LuaScript.TableType> optionType : extension.optionTypes.entrySet()) {
+
+        for (Map.Entry<String, EntryType> optionType : extension.optionTypes.entrySet()) {
             double thisEntryY = optionsTextY+(objHeight*yPositionMultiplier);
             String optionName = optionType.getKey();
             Lua.LuaType luaType = optionType.getValue().type;
@@ -50,13 +52,14 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
 
             optionElements.put(optionName, newExtensionOptionElement);
             newExtensionOptionElement.setPosition(optionsTextX+centerX/3, thisEntryY);
-            newExtensionOptionElement.setInitialState(extension.options.get(optionName));
+            newExtensionOptionElement.setInitialState(extension.optionValues.get(optionName));
             newExtensionOptionElement.setOnValueChanged((Object newValue) -> {
-                extension.options.put(optionName, newValue);
-                LuaExtension.saveExtensionOptions();
-                if (extension.fOnNewOptions.type() == Lua.LuaType.NIL) return;
+                extension.optionValues.put(optionName, newValue);
+//                LuaExtension.saveExtensionOptions();
+                LuaValue fOnNewOptions = extension.callbacks.get("onNewOptions");
+                if (fOnNewOptions.type() == Lua.LuaType.NIL) return;
 
-                SafeLuaRunner.safeCall(extension.fOnNewOptions, extension.options.getLuaTable(TanksLua.tanksLua.internalLuaState));
+                SafeLuaRunner.safeCall(fOnNewOptions, extension.optionValues.getLuaTable(TanksLua.tanksLua.internalLuaState));
             });
             yPositionMultiplier += yPositionMultiplierAdded;
         }
@@ -90,7 +93,7 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
         Drawing.drawing.displayInterfaceText(centerX, centerY-objHeight*3, extension.description);
 
         Drawing.drawing.setInterfaceFontSize(titleSize*0.6);
-        Drawing.drawing.displayInterfaceText(centerX, centerY-objHeight*2, extension.getVersionString());
+        Drawing.drawing.displayInterfaceText(centerX, centerY-objHeight*2, extension.version.toVersionString());
 
         if (extension.optionTypes.isEmpty()) return;
         Drawing.drawing.setFontSize(titleSize);

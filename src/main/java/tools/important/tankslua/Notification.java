@@ -36,6 +36,7 @@ public class Notification {
         this.text = text;
 
         TanksLua.tanksLua.activeNotifications.add(this);
+
         this.notifIndex = TanksLua.tanksLua.activeNotifications.size();
 
         if (Game.game.window == null) return;

@@ -1,10 +1,12 @@
 package tools.important.tankslua;
 
 import party.iroiro.luajava.Lua;
+import party.iroiro.luajava.LuaException;
 import party.iroiro.luajava.value.LuaValue;
 import tanks.Game;
 import tanks.gui.screen.Screen;
 import tanks.gui.screen.ScreenGame;
+import tools.important.tankslua.luapackage.LuaExtension;
 
 public class TanksEventListener {
     private Screen lastScreen;
@@ -13,51 +15,63 @@ public class TanksEventListener {
         if (lastScreen != Game.screen) {
             onScreenChanged(lastScreen, Game.screen);
         }
-        LevelScript currentLevelScript = LevelScript.currentLevelScript;
-        if (currentLevelScript != null) {
-            LuaValue fOnUpdate = currentLevelScript.fOnUpdate;
-            if (fOnUpdate.type() != Lua.LuaType.NIL) SafeLuaRunner.safeCall(fOnUpdate);
-        }
+//        LevelScript currentLevelScript = TanksLua.tanksLua.currentLevelScript;
+//        if (currentLevelScript != null) {
+//            LuaValue fOnUpdate = currentLevelScript.fOnUpdate;
+//            if (fOnUpdate.type() != Lua.LuaType.NIL) SafeLuaRunner.safeCall(fOnUpdate);
+//        }
 
         lastScreen = Game.screen;
 
         for (LuaExtension luaext: TanksLua.tanksLua.loadedLuaExtensions) {
-            LuaValue fOnUpdate = luaext.fOnUpdate;
-            if (fOnUpdate.type() == Lua.LuaType.NIL) return;
+            LuaValue fOnUpdate = luaext.callbacks.get("onUpdate");
+            if (fOnUpdate.type() == Lua.LuaType.NIL) continue;
             SafeLuaRunner.safeCall(fOnUpdate);
         }
     }
 
     public void onDraw() {
-        LevelScript currentLevelScript = LevelScript.currentLevelScript;
-        if (currentLevelScript != null) {
-            LuaValue fOnDraw = currentLevelScript.fOnDraw;
-            if (fOnDraw.type() != Lua.LuaType.NIL) SafeLuaRunner.safeCall(fOnDraw);
-        }
+//        LevelScript currentLevelScript = TanksLua.tanksLua.currentLevelScript;
+//        if (currentLevelScript != null) {
+//            LuaValue fOnDraw = currentLevelScript.fOnDraw;
+//            if (fOnDraw.type() != Lua.LuaType.NIL) SafeLuaRunner.safeCall(fOnDraw);
+//        }
 
         for (LuaExtension luaext: TanksLua.tanksLua.loadedLuaExtensions) {
-
-            LuaValue fOnDraw = luaext.fOnDraw;
-            if (fOnDraw.type() == Lua.LuaType.NIL) return;
+            LuaValue fOnDraw = luaext.callbacks.get("onDraw");
+            if (fOnDraw.type() == Lua.LuaType.NIL) continue;
             SafeLuaRunner.safeCall(fOnDraw);
         }
     }
 
     private void onScreenChanged(Screen oldScreen, Screen newScreen) {
-        if ((boolean) TanksLua.tanksLua.options.get("enableLevelScripts") && newScreen instanceof ScreenGame) {
-            ScreenGame sg = ((ScreenGame) newScreen);
-            LevelScript.tryLoadingLevelScript(sg.name);
-            for (LuaExtension luaExt: TanksLua.tanksLua.loadedLuaExtensions) {
-                LuaValue fOnLevelLoad = luaExt.fOnLevelLoad;
-                if (fOnLevelLoad.type() == Lua.LuaType.NIL) continue;
+        if (newScreen instanceof ScreenGame) {
+            onLevelLoaded((ScreenGame) newScreen);
+            return;
+        }
 
-                String levelName = sg.name;
-                if (levelName != null) levelName = levelName.replace(".tanks", "");
+        if (oldScreen instanceof ScreenGame) TanksLua.tanksLua.currentLevelPack = null;
+    }
 
-                SafeLuaRunner.safeCall(fOnLevelLoad, levelName);
+    private void onLevelLoaded(ScreenGame sg) {
+        String levelName = sg.name;
+        boolean levelScriptsEnabled = (boolean) TanksLua.tanksLua.options.get("enableLevelScripts");
+
+        if (levelName != null) levelName = levelName.replace(".tanks", "");
+
+        if (levelScriptsEnabled) {
+            try {
+//                TanksLua.tanksLua.currentLevelPack = LevelPack.fromLevelName(levelName);
+            } catch (LuaException luaException) {
+                new Notification(Notification.NotificationType.WARN, 5, luaException.getMessage());
             }
         }
 
-        if (oldScreen instanceof ScreenGame && (!(newScreen instanceof ScreenGame))) LevelScript.currentLevelScript = null;
+        for (LuaExtension luaExt: TanksLua.tanksLua.loadedLuaExtensions) {
+            LuaValue fOnLevelLoad = luaExt.callbacks.get("onLevelLoad");
+            if (fOnLevelLoad.type() == Lua.LuaType.NIL) continue;
+
+            SafeLuaRunner.safeCall(fOnLevelLoad, levelName);
+        }
     }
 }

@@ -19,6 +19,8 @@ import tools.important.tankslua.lualib.LuaLib;
 import tools.important.tankslua.lualib.TanksLib;
 import tools.important.tankslua.luacompatible.LuaCompatibleArrayList;
 import tools.important.tankslua.luacompatible.LuaCompatibleHashMap;
+import tools.important.tankslua.luapackage.LevelPack;
+import tools.important.tankslua.luapackage.LuaExtension;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -33,9 +35,9 @@ public final class TanksLua extends Extension {
      * The one and only instance of TanksLua.
      */
     public static TanksLua tanksLua;
-    public static final String version = "TanksLua Alpha 0.2.0";
-    public static final String scriptPath = Game.directoryPath + "/scripts";
-    public static final String fullScriptPath = System.getProperty("user.home").replace('\\', '/') + scriptPath;
+    public static final String VERSION = "TanksLua Alpha 0.2.0";
+    public static final String SCRIPT_PATH = Game.directoryPath + "/scripts";
+    public static final String FULL_SCRIPT_PATH = System.getProperty("user.home").replace('\\', '/') + SCRIPT_PATH;
     /**
      * The lua state used by the lua evaluation box
      */
@@ -57,21 +59,21 @@ public final class TanksLua extends Extension {
 
     public TextBox evalCodeBox;
     public Button evalRunButton;
-
     public Button enterLuaOptionsButton;
     public TanksEventListener eventListener = new TanksEventListener();
     public ArrayList<Notification> activeNotifications = new ArrayList<>();
 
     public TanksLua() {
         super("TanksLua");
+        if (tanksLua != null) throw new IllegalStateException("Attempt to create a new instance of TanksLua");
     }
 
     private static void initializeScriptsDir() {
-        makeEmptyDirectory(fullScriptPath);
-        makeEmptyDirectory(fullScriptPath + "/extensions");
-        makeEmptyDirectory(fullScriptPath + "/level");
-        makeFileWithContents(fullScriptPath + "/options.lua", "return {}");
-        makeFileWithContents(fullScriptPath + "/extensionOptions.lua", "return {}");
+        makeEmptyDirectory(FULL_SCRIPT_PATH);
+        makeEmptyDirectory(FULL_SCRIPT_PATH + "/extensions");
+        makeEmptyDirectory(FULL_SCRIPT_PATH + "/level");
+        makeFileWithContents(FULL_SCRIPT_PATH + "/options.lua", "return {}");
+        makeFileWithContents(FULL_SCRIPT_PATH + "/extensionOptions.lua", "return {}");
     }
 
     private static void makeEmptyDirectory(String path) {
@@ -119,7 +121,7 @@ public final class TanksLua extends Extension {
         options = new LuaCompatibleHashMap<>();
         loadedLuaExtensions = new LuaCompatibleArrayList<>();
 
-        if (!new File(fullScriptPath).exists())
+        if (!new File(FULL_SCRIPT_PATH).exists())
             initializeScriptsDir();
 
         internalLuaState = new Lua54();
@@ -130,7 +132,7 @@ public final class TanksLua extends Extension {
 
         loadOptions();
         openCustomLibs(evalBoxLuaState);
-        LuaExtension.registerExtensionsFromDir();
+        LuaExtension.loadExtensionsTo(loadedLuaExtensions);
 
         Screen screen = Game.screen;
         enterLuaOptionsButton = new Button(
@@ -174,15 +176,16 @@ public final class TanksLua extends Extension {
         });
     }
 
-    private static final HashMap<String, Object> defaultOptions = new HashMap<>();
+    public LevelPack currentLevelPack;
 
+    private static final HashMap<String, Object> defaultOptions = new HashMap<>();
     static {
         defaultOptions.put("enableLevelScripts", false);
         defaultOptions.put("enableEvalBox", false);
     }
 
     public void loadOptions() {
-        SafeLuaRunner.LuaResult result = SafeLuaRunner.safeLoadFile(internalLuaState, fullScriptPath + "/options.lua");
+        SafeLuaRunner.LuaResult result = SafeLuaRunner.safeLoadFile(internalLuaState, FULL_SCRIPT_PATH + "/options.lua");
 
         if (result.status != Lua.LuaError.OK) {
             throw new LuaException("options.lua failed to load!");
@@ -249,7 +252,7 @@ public final class TanksLua extends Extension {
         }
         newOptionsScript.append("}");
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(fullScriptPath + "/options.lua"));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(FULL_SCRIPT_PATH + "/options.lua"));
             writer.write(newOptionsScript.toString());
             writer.close();
         } catch (IOException e) {
@@ -260,7 +263,7 @@ public final class TanksLua extends Extension {
     @Override
     public void draw() {
         if (Drawing.drawing.enableStats) {
-            final String drawnText = "Running " + version;
+            final String drawnText = "Running " + VERSION;
             double rightEdge = Game.game.window.absoluteWidth;
             double textWidth = Game.game.window.fontRenderer.getStringSizeX(0.4, drawnText);
 
