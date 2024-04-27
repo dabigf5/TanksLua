@@ -10,7 +10,7 @@ public class EntryType {
         this.type = type;
         this.optional = optional;
     }
-
+    @SuppressWarnings("unused")
     public static EntryType fromString(String typestr) {
         boolean optional = typestr.endsWith("?");
         String typeName = typestr.replace("?", "").toUpperCase();
