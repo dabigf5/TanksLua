@@ -6,6 +6,7 @@ import party.iroiro.luajava.value.LuaValue;
 import tanks.Game;
 import tanks.gui.screen.Screen;
 import tanks.gui.screen.ScreenGame;
+import tools.important.tankslua.luapackage.LevelPack;
 import tools.important.tankslua.luapackage.LuaExtension;
 
 public class TanksEventListener {
@@ -15,11 +16,11 @@ public class TanksEventListener {
         if (lastScreen != Game.screen) {
             onScreenChanged(lastScreen, Game.screen);
         }
-//        LevelScript currentLevelScript = TanksLua.tanksLua.currentLevelScript;
-//        if (currentLevelScript != null) {
-//            LuaValue fOnUpdate = currentLevelScript.fOnUpdate;
-//            if (fOnUpdate.type() != Lua.LuaType.NIL) SafeLuaRunner.safeCall(fOnUpdate);
-//        }
+        LevelPack currentLevelPack = TanksLua.tanksLua.currentLevelPack;
+        if (currentLevelPack != null) {
+            LuaValue fOnUpdate = currentLevelPack.callbacks.get("onUpdate");
+            if (fOnUpdate.type() != Lua.LuaType.NIL) SafeLuaRunner.safeCall(fOnUpdate);
+        }
 
         lastScreen = Game.screen;
 
@@ -31,11 +32,11 @@ public class TanksEventListener {
     }
 
     public void onDraw() {
-//        LevelScript currentLevelScript = TanksLua.tanksLua.currentLevelScript;
-//        if (currentLevelScript != null) {
-//            LuaValue fOnDraw = currentLevelScript.fOnDraw;
-//            if (fOnDraw.type() != Lua.LuaType.NIL) SafeLuaRunner.safeCall(fOnDraw);
-//        }
+        LevelPack currentLevelScript = TanksLua.tanksLua.currentLevelPack;
+        if (currentLevelScript != null) {
+            LuaValue fOnDraw = currentLevelScript.callbacks.get("onDraw");
+            if (fOnDraw.type() != Lua.LuaType.NIL) SafeLuaRunner.safeCall(fOnDraw);
+        }
 
         for (LuaExtension luaext: TanksLua.tanksLua.loadedLuaExtensions) {
             LuaValue fOnDraw = luaext.callbacks.get("onDraw");
@@ -61,7 +62,7 @@ public class TanksEventListener {
 
         if (levelScriptsEnabled) {
             try {
-//                TanksLua.tanksLua.currentLevelPack = LevelPack.fromLevelName(levelName);
+                TanksLua.tanksLua.currentLevelPack = LevelPack.fromLevelName(levelName);
             } catch (LuaException luaException) {
                 new Notification(Notification.NotificationType.WARN, 5, luaException.getMessage());
             }
