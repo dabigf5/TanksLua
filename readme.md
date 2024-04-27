@@ -3,6 +3,8 @@ TanksLua is an extension for Tanks: The Crusades which allows for lua scripting.
 please note that this extension is quite early in development, and subject to change
 
 ## How-to
+(information here is outdated for 0.3.0+, will fix at some point)
+
 all things related to this extension are stored in a special directory, `.tanks/scripts/`
 ### Level Script Example
 a level script is simply a script that runs when a level is loaded\
