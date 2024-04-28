@@ -25,6 +25,9 @@ public class LevelPack extends LuaPackage {
         SafeLuaRunner.safeCall(fOnLoad);
     }
     public static LevelPack fromLevelName(String levelName) {
+        if (levelName == null) return null;
+
+
         File[] matches = new File(TanksLua.FULL_SCRIPT_PATH + "/level/").listFiles(
                 (dir, name) -> name.startsWith(levelName.toLowerCase())
         );
