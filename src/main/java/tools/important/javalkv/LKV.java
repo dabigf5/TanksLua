@@ -35,7 +35,7 @@ public class LKV {
         HashMap<String, LKVValue> pairs = new HashMap<>();
         String[] lkvFileSplit = lkv.split("\n");
         for (String line : lkvFileSplit) {
-            if (line.isEmpty()) continue; // blank line
+            if (line.trim().isEmpty()) continue; // blank line
             if (line.charAt(0) == '#') continue; // comment line
 
             String[] splitLine = line.split(" ", 4);
