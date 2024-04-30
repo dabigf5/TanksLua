@@ -69,6 +69,7 @@ public final class TanksLua extends Extension {
         makeEmptyDirectory(FULL_SCRIPT_PATH + "/extensions");
         makeEmptyDirectory(FULL_SCRIPT_PATH + "/level");
         makeEmptyDirectory(FULL_SCRIPT_PATH + "/extension-options");
+        makeEmptyDirectory(FULL_SCRIPT_PATH + "/temp");
         makeFileWithContents(FULL_SCRIPT_PATH + "/options.lua", "return {}");
     }
 
