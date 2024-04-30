@@ -41,6 +41,26 @@ public class Checkbox extends Button implements ExtensionOptionElement {
     }
 
     @Override
+    public double getPosX() {
+        return posX;
+    }
+
+    @Override
+    public double getPosY() {
+        return posY;
+    }
+
+    @Override
+    public double getWidth() {
+        return this.sizeX;
+    }
+
+    @Override
+    public double getHeight() {
+        return this.sizeY;
+    }
+
+    @Override
     public void setInitialState(Object initialState) {
         setChecked((boolean) initialState);
     }

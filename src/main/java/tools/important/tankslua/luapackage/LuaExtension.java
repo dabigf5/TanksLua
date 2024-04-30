@@ -6,7 +6,6 @@ import tools.important.javalkv.*;
 import tools.important.tankslua.Notification;
 import tools.important.tankslua.SafeLuaRunner;
 import tools.important.tankslua.TanksLua;
-import tools.important.tankslua.luacompatible.LuaCompatibleHashMap;
 import tools.important.tankslua.luapackage.verification.EntryType;
 
 import java.io.File;
@@ -14,6 +13,30 @@ import java.io.FileNotFoundException;
 import java.util.*;
 
 public class LuaExtension extends LuaPackage {
+    private LuaExtension(File extensionFile)
+            throws LKVParseException, ExtensionMetaParseException, ExtensionOptionParseException, FileNotFoundException {
+        super(extensionFile);
+
+        File extensionLuaFile = getExtensionLuaFile();
+        File extensionMetaFile = packSource.getFile("extension-meta.lkv");
+
+        if (extensionMetaFile == null)
+            throw new FileNotFoundException("Missing metadata file for extension " + extensionFile.getName());
+
+        loadMeta(extensionMetaFile);
+        loadOptionValues();
+
+        if (!enabled) return;
+
+        loadCallbacks(extensionLuaFile);
+
+        LuaValue fOnLoad = callbacks.get("onLoad");
+        if (fOnLoad.type() != Lua.LuaType.NIL) {
+            SafeLuaRunner.safeCall(fOnLoad);
+        }
+        onNewOptions();
+    }
+
     public String name;
     public String description;
     public String authorName;
@@ -28,80 +51,127 @@ public class LuaExtension extends LuaPackage {
         // maybe change this if there's a lot of metadata
 
         LKVValue lkvName = pairs.get("name");
-        if (lkvName == null) throw new LKVParseException("Missing required LKV metadata entry name");
+        if (lkvName == null) throw new ExtensionMetaParseException("Missing required LKV metadata entry name");
         if (lkvName.type != LKVType.STRING)
-            throw new LKVParseException("LKV metadata entry name is of wrong type (expected string)");
+            throw new ExtensionMetaParseException("LKV metadata entry name is of wrong type (expected string)");
         name = (String) lkvName.value;
 
         LKVValue lkvDescription = pairs.get("description");
-        if (lkvDescription == null) throw new LKVParseException("Missing required LKV metadata entry description");
+        if (lkvDescription == null)
+            throw new ExtensionMetaParseException("Missing required LKV metadata entry description");
         if (lkvDescription.type != LKVType.STRING)
-            throw new LKVParseException("LKV metadata entry description is of wrong type (expected string)");
+            throw new ExtensionMetaParseException("LKV metadata entry description is of wrong type (expected string)");
         description = (String) lkvDescription.value;
 
         LKVValue lkvAuthor = pairs.get("authorName");
-        if (lkvAuthor == null) throw new LKVParseException("Missing required LKV metadata entry authorName");
+        if (lkvAuthor == null) throw new ExtensionMetaParseException("Missing required LKV metadata entry authorName");
         if (lkvAuthor.type != LKVType.STRING)
-            throw new LKVParseException("LKV metadata entry authorName is of wrong type (expected string)");
+            throw new ExtensionMetaParseException("LKV metadata entry authorName is of wrong type (expected string)");
+
         authorName = (String) lkvAuthor.value;
 
         LKVValue lkvVersion = pairs.get("version");
-        if (lkvVersion == null) throw new LKVParseException("Missing required LKV metadata entry version");
+        if (lkvVersion == null) throw new ExtensionMetaParseException("Missing required LKV metadata entry version");
         if (lkvVersion.type != LKVType.VERSION)
-            throw new LKVParseException("LKV metadata entry version is of wrong type (expected version)");
+            throw new ExtensionMetaParseException("LKV metadata entry version is of wrong type (expected version)");
         version = (SemanticVersion) lkvVersion.value;
 
-        loadOptionTypesAndDefaults(pairs);
+        loadOptionMeta(pairs);
     }
 
 
     public boolean enabled;
 
 
-    public LuaCompatibleHashMap<String, Object> optionValues = new LuaCompatibleHashMap<>();
+    public static class LuaExtensionOption {
+        public String displayName;
+        public final String name;
+        public final LKVType type;
+        private final Object defaultValue;
+        public Object value;
 
+        public LuaExtensionOption(String displayName, String name, LKVType type, Object defaultValue) {
+            this.displayName = displayName;
+            this.name = name;
+            this.type = type;
+            this.defaultValue = defaultValue;
+        }
+    }
 
-    public Map<String, LKVType> optionTypes = new LuaCompatibleHashMap<>();
-    private final Map<String, Object> optionDefaults = new HashMap<>();
+    public static class ExtensionOptionParseException extends RuntimeException {
+        private ExtensionOptionParseException(String message) {
+            super(message);
+        }
+    }
+
+    public static class ExtensionMetaParseException extends RuntimeException {
+        private ExtensionMetaParseException(String message) {
+            super(message);
+        }
+    }
+
+    public final List<LuaExtensionOption> options = new ArrayList<>();
+
+    public LuaValue getOptionsLuaTable(Lua luaState) {
+        luaState.createTable(0, options.size());
+        int extensionTableStackIndex = luaState.getTop();
+
+        for (LuaExtensionOption option : options) {
+            luaState.push(option.name);
+            luaState.push(option.value, Lua.Conversion.SEMI);
+            luaState.setTable(extensionTableStackIndex);
+        }
+
+        return luaState.get();
+    }
 
     private static final String OPTION_PREFIX = "option_";
     private static final String OPTION_DEFAULT_PREFIX = "optiondefault_";
-
-    private void loadOptionTypesAndDefaults(HashMap<String, LKVValue> lkvPairs) {
+    private static final String OPTION_DISPLAYNAME_PREFIX = "optiondisplayname_";
+    private void loadOptionMeta(HashMap<String, LKVValue> lkvPairs) {
         for (Map.Entry<String, LKVValue> entry : lkvPairs.entrySet()) {
             String key = entry.getKey();
-
             if (!key.startsWith(OPTION_PREFIX)) continue;
 
-            LKVValue value = entry.getValue();
-            if (value.type != LKVType.TYPE) throw new LKVParseException("Option definition \""+key+"\" is of a non-type type");
-
             String optionName = key.substring(OPTION_PREFIX.length());
-            optionTypes.put(optionName, (LKVType) value.value);
-        }
+            LKVValue optionDefinition = entry.getValue();
 
-        for (Map.Entry<String, LKVValue> entry : lkvPairs.entrySet()) {
-            String key = entry.getKey();
+            if (optionDefinition.type != LKVType.TYPE)
+                throw new ExtensionMetaParseException("Option definition \"" + key + "\" is of a non-type type");
 
-            if (!key.startsWith(OPTION_DEFAULT_PREFIX)) continue;
+            LKVType expectedOptionType = (LKVType) optionDefinition.value;
 
-            LKVValue value = entry.getValue();
+            LKVValue defaultValueLkv = lkvPairs.get(OPTION_DEFAULT_PREFIX + optionName);
 
-            String optionName = key.substring(OPTION_DEFAULT_PREFIX.length());
+            if (defaultValueLkv == null)
+                throw new ExtensionMetaParseException("Option default value for \"" + optionName + "\" is not present");
+            if (defaultValueLkv.type != expectedOptionType)
+                throw new ExtensionMetaParseException("Option default value for \"" + optionName + "\" is of the wrong type");
 
-            if (value.type != optionTypes.get(optionName)) throw new LKVParseException("Option default for option \""+key+"\" is of the wrong type");
 
-            optionDefaults.put(optionName, value.value);
-        }
 
-        for (String optionName : optionTypes.keySet()) {
-            if (optionDefaults.get(optionName) == null) throw new LKVParseException("Option default for option \""+optionName+"\" is missing!");
+            LKVValue optionDisplayNameLkv = lkvPairs.get(OPTION_DISPLAYNAME_PREFIX + optionName);
+            if (optionDisplayNameLkv == null)
+                throw new ExtensionMetaParseException("Option display name for \"" + optionName + "\" is not present");
+            if (optionDisplayNameLkv.type != LKVType.STRING)
+                throw new ExtensionMetaParseException("Option display name for \"" + optionName + "\" is of the wrong type");
+
+
+
+            LuaExtensionOption option = new LuaExtensionOption(
+                    (String) optionDisplayNameLkv.value,
+                    optionName,
+                    expectedOptionType,
+                    defaultValueLkv.value
+            );
+
+            options.add(option);
         }
     }
 
 
     private static final String ENABLED_KEY = "ENABLED";
-    private void loadOptions() {
+    private void loadOptionValues() {
         File optionsLkvFile = getOptionsLkvFile();
         if (!optionsLkvFile.exists()) return;
 
@@ -110,73 +180,52 @@ public class LuaExtension extends LuaPackage {
         Map<String, LKVValue> pairs = LKV.parse(optionsLkv);
 
         LKVValue enabledValue = pairs.get(ENABLED_KEY);
-        if (enabledValue == null) throw new LKVParseException("Missing enabled value in options");
+
+        if (enabledValue == null) throw new ExtensionOptionParseException("Missing enabled value in options");
         if (enabledValue.type != LKVType.BOOLEAN)
-            throw new LKVParseException("enabled value in options has wrong type");
+            throw new ExtensionOptionParseException("enabled value in options has wrong type");
 
         this.enabled = (boolean) enabledValue.value;
 
-        pairs.remove(ENABLED_KEY); // so that the for loop below doesn't complain about invalid option
+        for (LuaExtensionOption option : options) {
+            LKVValue value = pairs.get(option.name);
 
-        for (Map.Entry<String, LKVValue> pair : pairs.entrySet()) {
-            String key = pair.getKey();
-            LKVValue value = pair.getValue();
+            if (value == null) {
+                option.value = option.defaultValue;
+                continue;
+            }
 
-            LKVType expectedType = optionTypes.get(key);
-            if (expectedType == null) throw new LKVParseException("Option " + key + " is not a valid option");
-            if (value.type != expectedType) throw new LKVParseException("Option " + key + " is of wrong type");
+            if (value.type != option.type)
+                throw new ExtensionOptionParseException("Option " + option.name + " is of wrong type");
 
-            optionValues.put(key, value.value);
-//            System.out.println(key + ", " + value.value);
-        }
-
-        for (Map.Entry<String, Object> pair : optionDefaults.entrySet()) {
-            String key = pair.getKey();
-            Object defaultValue = pair.getValue();
-
-            optionValues.putIfAbsent(key, defaultValue);
+            option.value = value.value;
+//            System.out.println(option.name + " = " + value.value);
         }
     }
     public void saveOptions() {
         File optionsLkvFile = getOptionsLkvFile();
 
-        StringBuilder optionsFileBuilder = new StringBuilder("boolean ENABLED = ").append(enabled).append("\n");
+        StringBuilder optionsFileBuilder = new StringBuilder("boolean ENABLED = ").append(enabled).append("\n\n");
 
-        for (Map.Entry<String, Object> entry : optionValues.entrySet()) {
-            String optionName = entry.getKey();
-            Object optionValue = entry.getValue();
+        for (LuaExtensionOption option : options) {
+            String optionName = option.name;
+            Object optionValue = option.value;
 
-            LKVType optionType = optionTypes.get(optionName);
+            LKVType optionType = option.type;
 
             optionsFileBuilder.append(optionType.typeName).append(" ").append(optionName).append(" = ").append(optionValue.toString()).append("\n");
         }
 
-
         replaceContentsOfFile(optionsLkvFile, optionsFileBuilder.toString());
     }
-
     private File getOptionsLkvFile() {
         return new File(TanksLua.FULL_SCRIPT_PATH + "/extension-options/" + packSource.getPackName() + ".lkv");
     }
-
-
-    public LuaExtension(File extensionFile) throws LKVParseException, FileNotFoundException {
-        super(extensionFile);
-
-        File extensionLuaFile = packSource.getFile("extension.lua");
-        File extensionMetaFile = packSource.getFile("extension-meta.lkv");
-
-        if (extensionMetaFile == null)
-            throw new FileNotFoundException("Missing metadata file for extension " + extensionFile.getName());
-
-        loadMeta(extensionMetaFile);
-        loadOptions();
-
-        loadCallbacks(extensionLuaFile);
-
-        LuaValue fOnLoad = callbacks.get("onLoad");
-        if (fOnLoad.type() == Lua.LuaType.NIL) return;
-        SafeLuaRunner.safeCall(fOnLoad);
+    public void onNewOptions() {
+        LuaValue fOnNewOptions = callbacks.get("onNewOptions");
+        if (fOnNewOptions.type() != Lua.LuaType.NIL) {
+            SafeLuaRunner.safeCall(fOnNewOptions, getOptionsLuaTable(luaState));
+        }
     }
 
 
@@ -192,6 +241,10 @@ public class LuaExtension extends LuaPackage {
         CALLBACK_TYPES.put("onNewOptions", new EntryType(Lua.LuaType.FUNCTION, true));
     }
 
+    private File getExtensionLuaFile() {
+        return packSource.getFile("extension.lua");
+    }
+
     private void loadCallbacks(File extensionLuaFile) {
         LuaValue table = getAndVerifyTableFrom(extensionLuaFile, CALLBACK_TYPES);
 
@@ -199,7 +252,11 @@ public class LuaExtension extends LuaPackage {
             callbacks.put(callbackName, table.get(callbackName));
         }
     }
+    public void loadCallbacksIfNone() {
+        if (!callbacks.isEmpty()) return;
 
+        loadCallbacks(getExtensionLuaFile());
+    }
 
     public static void loadExtensionsTo(List<LuaExtension> extensionList) {
 //        loadDecoys(extensionList,30);
@@ -210,7 +267,13 @@ public class LuaExtension extends LuaPackage {
             try {
                 extensionList.add(new LuaExtension(file));
             } catch (LKVParseException e) {
+                new Notification(Notification.NotificationType.WARN, 5, "Extension " + file.getName() + " has invalidly formatted metadata! See log for details");
+                e.printStackTrace();
+            } catch (ExtensionMetaParseException e) {
                 new Notification(Notification.NotificationType.WARN, 5, "Extension " + file.getName() + " has invalid metadata! See log for details");
+                e.printStackTrace();
+            } catch (ExtensionOptionParseException e) {
+                new Notification(Notification.NotificationType.WARN, 5, "TanksLua ran into a problem parsing " + file.getName() + "'s options! See log for details");
                 e.printStackTrace();
             } catch (FileNotFoundException e) {
                 new Notification(Notification.NotificationType.WARN, 5, "Extension " + file.getName() + " has a missing metadata file! See log for details");

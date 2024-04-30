@@ -40,14 +40,22 @@ public final class SafeLuaRunner {
 
         int top = luaState.getTop();
         userFunction.push();
-        for (Object o : parameters) {
-            luaState.push(o, Lua.Conversion.SEMI);
+        for (Object param : parameters) {
+            if (param instanceof LuaValue) {
+                LuaValue paramLuaValue = (LuaValue) param;
+
+                paramLuaValue.push();
+                continue;
+            }
+
+            luaState.push(param, Lua.Conversion.SEMI);
         }
 
         Lua.LuaError result = luaState.pCall(parameters.length, Consts.LUA_MULTRET);
 
         if (result != Lua.LuaError.OK) {
             String error = luaState.toString(luaState.getTop());
+
             if (autoLogErrors) {
                 System.out.println("Lua error: "+result+"; "+error);
             }

@@ -26,6 +26,7 @@ public class TanksEventListener {
         lastScreen = Game.screen;
 
         for (LuaExtension luaext: TanksLua.tanksLua.loadedLuaExtensions) {
+            if (!luaext.enabled) continue;
             LuaValue fOnUpdate = luaext.callbacks.get("onUpdate");
             if (fOnUpdate.type() == Lua.LuaType.NIL) continue;
             SafeLuaRunner.safeCall(fOnUpdate);
@@ -40,6 +41,7 @@ public class TanksEventListener {
         }
 
         for (LuaExtension luaext: TanksLua.tanksLua.loadedLuaExtensions) {
+            if (!luaext.enabled) continue;
             LuaValue fOnDraw = luaext.callbacks.get("onDraw");
             if (fOnDraw.type() == Lua.LuaType.NIL) continue;
             SafeLuaRunner.safeCall(fOnDraw);
@@ -49,8 +51,16 @@ public class TanksEventListener {
     private void onScreenChanged(Screen oldScreen, Screen newScreen) {
         if (oldScreen instanceof ScreenOptionsLuaInspectExtension) {
             ScreenOptionsLuaInspectExtension inspectionScreen = (ScreenOptionsLuaInspectExtension) oldScreen;
-            inspectionScreen.extension.saveOptions();
+            LuaExtension inspectedExtension = inspectionScreen.extension;
+            inspectedExtension.saveOptions();
+
+            if (inspectedExtension.enabled) {
+                inspectedExtension.loadCallbacksIfNone();
+                inspectedExtension.onNewOptions();
+            }
         }
+
+
 
         if (newScreen instanceof ScreenGame) {
             onLevelLoaded((ScreenGame) newScreen);
@@ -74,8 +84,9 @@ public class TanksEventListener {
             }
         }
 
-        for (LuaExtension luaExt: TanksLua.tanksLua.loadedLuaExtensions) {
-            LuaValue fOnLevelLoad = luaExt.callbacks.get("onLevelLoad");
+        for (LuaExtension luaext: TanksLua.tanksLua.loadedLuaExtensions) {
+            if (!luaext.enabled) continue;
+            LuaValue fOnLevelLoad = luaext.callbacks.get("onLevelLoad");
             if (fOnLevelLoad.type() == Lua.LuaType.NIL) continue;
 
             SafeLuaRunner.safeCall(fOnLevelLoad, levelName);
