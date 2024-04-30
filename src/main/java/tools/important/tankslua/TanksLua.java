@@ -10,15 +10,15 @@ import tanks.Game;
 import tanks.Panel;
 import tanks.extension.Extension;
 import tanks.gui.Button;
-import tanks.gui.TextBox;
 import tanks.gui.screen.Screen;
 import tanks.gui.screen.ScreenOptions;
+import tools.important.tankslua.gui.EvalBox;
 import tools.important.tankslua.gui.screen.ScreenOptionsLua;
+import tools.important.tankslua.luacompatible.LuaCompatibleArrayList;
+import tools.important.tankslua.luacompatible.LuaCompatibleHashMap;
 import tools.important.tankslua.lualib.JavaLibExtras;
 import tools.important.tankslua.lualib.LuaLib;
 import tools.important.tankslua.lualib.TanksLib;
-import tools.important.tankslua.luacompatible.LuaCompatibleArrayList;
-import tools.important.tankslua.luacompatible.LuaCompatibleHashMap;
 import tools.important.tankslua.luapackage.LevelPack;
 import tools.important.tankslua.luapackage.LuaExtension;
 
@@ -38,10 +38,7 @@ public final class TanksLua extends Extension {
     public static final String VERSION = "TanksLua Alpha 0.2.0";
     public static final String SCRIPT_PATH = Game.directoryPath + "/scripts";
     public static final String FULL_SCRIPT_PATH = System.getProperty("user.home").replace('\\', '/') + SCRIPT_PATH;
-    /**
-     * The lua state used by the lua evaluation box
-     */
-    public Lua evalBoxLuaState;
+
     /**
      * A lua state which is used for miscellaneous operations which don't need any specific lua state.<br><br>
      * As a rule of thumb, it should never be written to (such as having globals declared within it).<br><br>
@@ -57,8 +54,7 @@ public final class TanksLua extends Extension {
         optionTypes.put("enableEvalBox", Lua.LuaType.BOOLEAN);
     }
 
-    public TextBox evalCodeBox;
-    public Button evalRunButton;
+    public EvalBox evalBox;
     public Button enterLuaOptionsButton;
     public TanksEventListener eventListener = new TanksEventListener();
     public ArrayList<Notification> activeNotifications = new ArrayList<>();
@@ -72,8 +68,8 @@ public final class TanksLua extends Extension {
         makeEmptyDirectory(FULL_SCRIPT_PATH);
         makeEmptyDirectory(FULL_SCRIPT_PATH + "/extensions");
         makeEmptyDirectory(FULL_SCRIPT_PATH + "/level");
+        makeEmptyDirectory(FULL_SCRIPT_PATH + "/extension-options");
         makeFileWithContents(FULL_SCRIPT_PATH + "/options.lua", "return {}");
-        makeFileWithContents(FULL_SCRIPT_PATH + "/extensionOptions.lua", "return {}");
     }
 
     private static void makeEmptyDirectory(String path) {
@@ -127,11 +123,10 @@ public final class TanksLua extends Extension {
         internalLuaState = new Lua54();
         internalLuaState.openLibraries(); // not sure if really needed, but not taking risks either
 
-        evalBoxLuaState = new Lua54();
-        evalBoxLuaState.openLibraries();
+        evalBox = new EvalBox();
 
         loadOptions();
-        openCustomLibs(evalBoxLuaState);
+
         LuaExtension.loadExtensionsTo(loadedLuaExtensions);
 
         Screen screen = Game.screen;
@@ -144,36 +139,7 @@ public final class TanksLua extends Extension {
                 "The options for the TanksLua extension"
         );
 
-        evalCodeBox = new TextBox(screen.centerX, screen.objYSpace, screen.objWidth * 4, screen.objHeight, "Lua Code", () -> {
-        }, "");
-        evalCodeBox.allowLetters = true;
-        evalCodeBox.allowSpaces = true;
-        evalCodeBox.enableCaps = true;
-        evalCodeBox.enablePunctuation = true;
 
-        evalCodeBox.maxChars = 1000; // who's gonna write lua code longer than 1000 characters
-
-        evalRunButton = new Button(screen.centerX - screen.objXSpace * 1.37, screen.objYSpace * 2, screen.objWidth, screen.objHeight, "Evaluate", () -> {
-            String code = evalCodeBox.inputText;
-            SafeLuaRunner.LuaResult loadResult = SafeLuaRunner.safeLoadString(evalBoxLuaState, code);
-            final double youFuckedUpSecondsPerCharacter = 0.1;
-
-            if (loadResult.status != Lua.LuaError.OK) {
-                String error = loadResult.errorMessage;
-                new Notification(Notification.NotificationType.WARN, youFuckedUpSecondsPerCharacter * error.length(), "Your code failed to load! " + error);
-                return;
-            }
-
-            SafeLuaRunner.LuaResult callResult = SafeLuaRunner.safeCall(loadResult.returns[0]);
-
-            if (callResult.status != Lua.LuaError.OK) {
-                String error = callResult.errorMessage;
-                new Notification(Notification.NotificationType.WARN, youFuckedUpSecondsPerCharacter * error.length(), "Your code failed to run! " + error);
-                return;
-            }
-
-            new Notification(Notification.NotificationType.INFO, 1, "Successfully ran your code!");
-        });
     }
 
     public LevelPack currentLevelPack;
@@ -281,8 +247,7 @@ public final class TanksLua extends Extension {
 
         if (options != null && (boolean) options.get("enableEvalBox")) {
             drawExtraMouseTarget = true;
-            evalCodeBox.draw();
-            evalRunButton.draw();
+            evalBox.draw();
         }
 
         for (Notification notif : activeNotifications) {
@@ -304,8 +269,7 @@ public final class TanksLua extends Extension {
         }
 
         if (options != null && (boolean) options.get("enableEvalBox")) {
-            evalCodeBox.update();
-            evalRunButton.update();
+            evalBox.update();
         }
         for (int i = 0; i < activeNotifications.size(); i++) {
             Notification notif = activeNotifications.get(i);
