@@ -24,18 +24,18 @@ public class ScreenOptionsLua extends Screen {
         backButton = new Button(centerX, centerY + objYSpace * 3.5, objWidth, objHeight, "Back", () -> Game.screen = new ScreenOptions());
 
         enableLevelScriptsButton = new ToggleOptionButton(centerX, centerY - objHeight * 3, objWidth, objHeight, "Level scripts",
-                () -> TanksLua.tanksLua.options.put("enableLevelScripts", true),
-                () -> TanksLua.tanksLua.options.put("enableLevelScripts", false),
-                (boolean) TanksLua.tanksLua.options.get("enableLevelScripts"),
+                () -> TanksLua.tanksLua.setOptionValue("enableLevelScripts", true),
+                () -> TanksLua.tanksLua.setOptionValue("enableLevelScripts", false),
+                (boolean) TanksLua.tanksLua.getOptionValue("enableLevelScripts"),
                 "Whether or not the extension should run scripts for levels that have them---" +
                         "in the .tanks/scripts directory.---" +
                         "---" +
                         "Please note that turning this off may cause problems with some levels---" +
                         "that depend on scripts to function properly!");
         enableEvalBoxButton = new ToggleOptionButton(centerX, centerY - objHeight * 1.7, objWidth, objHeight, "Evaluation Box",
-                () -> TanksLua.tanksLua.options.put("enableEvalBox", true),
-                () -> TanksLua.tanksLua.options.put("enableEvalBox", false),
-                (boolean) TanksLua.tanksLua.options.get("enableEvalBox"),
+                () -> TanksLua.tanksLua.setOptionValue("enableEvalBox", true),
+                () -> TanksLua.tanksLua.setOptionValue("enableEvalBox", false),
+                (boolean) TanksLua.tanksLua.getOptionValue("enableEvalBox"),
                 "If the extension should show a box at the top of the screen---" +
                         "that lets you evaluate Lua code at will.---" +
                         "---" +

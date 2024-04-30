@@ -43,7 +43,7 @@ public class LuaExtension extends LuaPackage {
     public SemanticVersion version;
 
     private void loadMeta(File extensionMetaFile) {
-        String content = readContentsOfFile(extensionMetaFile);
+        String content = TanksLua.readContentsOfFile(extensionMetaFile);
 
         HashMap<String, LKVValue> pairs = LKV.parse(content);
 
@@ -175,7 +175,7 @@ public class LuaExtension extends LuaPackage {
         File optionsLkvFile = getOptionsLkvFile();
         if (!optionsLkvFile.exists()) return;
 
-        String optionsLkv = readContentsOfFile(optionsLkvFile);
+        String optionsLkv = TanksLua.readContentsOfFile(optionsLkvFile);
 
         Map<String, LKVValue> pairs = LKV.parse(optionsLkv);
 
@@ -216,7 +216,7 @@ public class LuaExtension extends LuaPackage {
             optionsFileBuilder.append(optionType.typeName).append(" ").append(optionName).append(" = ").append(optionValue.toString()).append("\n");
         }
 
-        replaceContentsOfFile(optionsLkvFile, optionsFileBuilder.toString());
+        TanksLua.replaceContentsOfFile(optionsLkvFile, optionsFileBuilder.toString());
     }
     private File getOptionsLkvFile() {
         return new File(TanksLua.FULL_SCRIPT_PATH + "/extension-options/" + packSource.getPackName() + ".lkv");

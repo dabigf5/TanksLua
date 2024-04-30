@@ -5,7 +5,7 @@ import tanks.Game;
 import tanks.gui.Button;
 import tanks.gui.screen.Screen;
 import tools.important.javalkv.LKVType;
-import tools.important.tankslua.gui.ToggleOptionButton;
+import tools.important.tankslua.gui.ToggleButton;
 import tools.important.tankslua.gui.extensionoption.Checkbox;
 import tools.important.tankslua.gui.extensionoption.ExtensionOptionElement;
 import tools.important.tankslua.luapackage.LuaExtension;
@@ -69,7 +69,7 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
                 () -> Game.screen = new ScreenOptionsLuaExtensionList()
         );
 
-        this.toggleEnabled = new ToggleOptionButton(centerX, centerY+objHeight*5, objWidth, objHeight, "Enabled",
+        this.toggleEnabled = new ToggleButton(centerX, centerY+objHeight*5, objWidth, objHeight, "Enabled",
                 () -> extension.enabled = true,
                 () -> extension.enabled = false,
                 extension.enabled

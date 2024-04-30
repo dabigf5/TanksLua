@@ -1,46 +1,20 @@
 package tools.important.tankslua.gui;
 
-import tanks.gui.Button;
-import tanks.gui.screen.ScreenOptions;
 import tools.important.tankslua.TanksLua;
 
-public class ToggleOptionButton extends Button {
-    private boolean optionEnabled;
-
+public class ToggleOptionButton extends ToggleButton {
     public ToggleOptionButton(double x, double y, double sX, double sY, String optionName, Runnable onEnable, Runnable onDisable, boolean initialState) {
-        this(x,y,sX,sY,optionName,onEnable,onDisable,initialState,null);
+        this(x, y, sX, sY, optionName, onEnable, onDisable, initialState, null);
     }
+
     public ToggleOptionButton(double x, double y, double sX, double sY, String optionName, Runnable onEnable, Runnable onDisable, boolean initialState, String hoverText) {
-        super(x, y, sX, sY, optionName+": ");
-        final String onStr = text+ScreenOptions.onText;
-        final String offStr = text+ScreenOptions.offText;
-        optionEnabled = initialState;
+        super(x, y, sX, sY, optionName, onEnable, onDisable, initialState, hoverText);
 
-        if (hoverText != null) {
-            setHoverText(hoverText);
-            this.enableHover = true;
-        }
-
-        if (optionEnabled) {
-            setText(onStr);
-        } else {
-            setText(offStr);
-        }
+        Runnable baseFunction = this.function;
 
         this.function = () -> {
-            optionEnabled = !optionEnabled;
-
-            if (optionEnabled) {
-                setText(onStr);
-                onEnable.run();
-            } else {
-                setText(offStr);
-                onDisable.run();
-            }
-
+            baseFunction.run();
             TanksLua.tanksLua.saveOptions();
         };
-
-        this.enabled = true;
     }
 }

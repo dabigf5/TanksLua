@@ -72,7 +72,7 @@ public class TanksEventListener {
 
     private void onLevelLoaded(ScreenGame sg) {
         String levelName = sg.name;
-        boolean levelScriptsEnabled = (boolean) TanksLua.tanksLua.options.get("enableLevelScripts");
+        boolean levelScriptsEnabled = (boolean) TanksLua.tanksLua.getOptionValue("enableLevelScripts");
 
         if (levelName != null) levelName = levelName.replace(".tanks", "");
 
