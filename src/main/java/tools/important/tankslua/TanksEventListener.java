@@ -6,6 +6,7 @@ import party.iroiro.luajava.value.LuaValue;
 import tanks.Game;
 import tanks.gui.screen.Screen;
 import tanks.gui.screen.ScreenGame;
+import tools.important.tankslua.gui.screen.ScreenOptionsLuaInspectExtension;
 import tools.important.tankslua.luapackage.LevelPack;
 import tools.important.tankslua.luapackage.LuaExtension;
 
@@ -46,6 +47,11 @@ public class TanksEventListener {
     }
 
     private void onScreenChanged(Screen oldScreen, Screen newScreen) {
+        if (oldScreen instanceof ScreenOptionsLuaInspectExtension) {
+            ScreenOptionsLuaInspectExtension inspectionScreen = (ScreenOptionsLuaInspectExtension) oldScreen;
+            inspectionScreen.extension.saveOptions();
+        }
+
         if (newScreen instanceof ScreenGame) {
             onLevelLoaded((ScreenGame) newScreen);
             return;

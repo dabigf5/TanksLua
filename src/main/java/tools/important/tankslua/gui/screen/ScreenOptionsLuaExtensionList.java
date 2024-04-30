@@ -5,6 +5,7 @@ import tanks.Game;
 import tanks.gui.Button;
 import tanks.gui.ButtonList;
 import tanks.gui.screen.Screen;
+import tools.important.tankslua.Notification;
 import tools.important.tankslua.TanksLua;
 import tools.important.tankslua.luapackage.LuaExtension;
 
@@ -23,6 +24,8 @@ public class ScreenOptionsLuaExtensionList extends Screen {
             TanksLua.tanksLua.loadedLuaExtensions.clear();
             LuaExtension.loadExtensionsTo(TanksLua.tanksLua.loadedLuaExtensions);
             updateExtensionButtonList();
+
+            new Notification(Notification.NotificationType.INFO, 1, "Extensions reloaded!");
         });
 
         updateExtensionButtonList();
@@ -39,7 +42,11 @@ public class ScreenOptionsLuaExtensionList extends Screen {
             ));
         }
 
-        extensionButtonList = new ButtonList(buttons, 1, 0, -this.objYSpace*1.5);
+        extensionButtonList = new ButtonList(buttons, 0, 0, -this.objYSpace*1.5);
+        extensionButtonList.objWidth *= 3;
+        extensionButtonList.columns = 1;
+
+        extensionButtonList.sortButtons();
     }
 
     @Override

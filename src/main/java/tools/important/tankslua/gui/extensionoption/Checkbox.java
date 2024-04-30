@@ -30,6 +30,7 @@ public class Checkbox extends Button implements ExtensionOptionElement {
         Drawing.drawing.fillRect(posX, posY, sizeX, sizeY);
         Drawing.drawing.setColor(0,0,0);
         Drawing.drawing.setInterfaceFontSize(Game.screen.titleSize*1.5);
+
         if (!isChecked) {
             Drawing.drawing.displayInterfaceText(posX, posY, "X");
             return;

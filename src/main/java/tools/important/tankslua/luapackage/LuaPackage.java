@@ -11,9 +11,11 @@ import tools.important.tankslua.luapackage.packsource.DirectoryPackSource;
 import tools.important.tankslua.luapackage.packsource.PackSource;
 import tools.important.tankslua.luapackage.verification.EntryType;
 
-import java.io.File;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
 
 public abstract class LuaPackage {
     protected final PackSource packSource;
@@ -33,6 +35,19 @@ public abstract class LuaPackage {
         }
 
         throw new IllegalArgumentException("Unable to recognize packFile as a valid package!");
+    }
+    protected LuaPackage() { // for the purpose of decoys
+        packSource = new PackSource() {
+            @Override
+            public File getFile(String fileName) {
+                return null;
+            }
+
+            @Override
+            public String getPackName() {
+                return "decoy";
+            }
+        };
     }
 
     protected LuaValue getAndVerifyTableFrom(File file, HashMap<String, EntryType> types) {
@@ -76,5 +91,35 @@ public abstract class LuaPackage {
             if (tableValueType != entryType.type) throw new LuaException("The file's table has a key of wrong type! ("+entryName+" expects "+entryType.type+" but got "+entryType+")");
         }
         return table;
+    }
+
+
+    protected static String readContentsOfFile(File file) {
+        String content;
+
+        try {
+            content = new Scanner(file).useDelimiter("\\Z").next();
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchElementException e) {
+            return "";
+        }
+
+        return content;
+    }
+
+    protected static void replaceContentsOfFile(File file, String newContents) {
+        try {
+            if (!file.exists()) //noinspection ResultOfMethodCallIgnored
+                file.createNewFile();
+
+            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+
+            writer.write(newContents);
+
+            writer.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

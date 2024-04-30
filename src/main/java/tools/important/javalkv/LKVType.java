@@ -27,8 +27,32 @@ public enum LKVType {
     },
             String.class),
     INT("int", Integer::parseInt, Integer.class),
-    VERSION("version", SemanticVersion::fromVersionString, SemanticVersion.class)
+    FLOAT("float", Float::parseFloat, Float.class),
+    BOOLEAN("boolean", str -> {
+        boolean isTrue = str.equals("true");
+        boolean isFalse = str.equals("false");
 
+        if (!(isTrue || isFalse)) throw new LKVParseException("Invalid boolean");
+
+        return isTrue;
+    }, Boolean.class),
+
+
+
+    VERSION("version", SemanticVersion::fromVersionString, SemanticVersion.class),
+    TYPE("type", str -> {
+        LKVType type = findType(str);
+        if (type == null) throw new LKVParseException("Invalid type");
+        return type;
+    }, LKVType.class)
+
+//    CLASS("class", str -> {
+//        try {
+//            return Class.forName(str);
+//        } catch (ClassNotFoundException ignored) {
+//            throw new LKVParseException("Class could not be found");
+//        }
+//    }, Class.class),
     ;
 
     public final String typeName;
@@ -38,5 +62,18 @@ public enum LKVType {
         this.typeName = typeName;
         this.conversion = conversion;
         this.expectedClass = expectedClass;
+    }
+
+
+
+    public static LKVType findType(String typeName) {
+        LKVType pairType = null;
+        for (LKVType type : LKVType.values()) {
+            if (type.typeName.equals(typeName)) {
+                pairType = type;
+                break;
+            }
+        }
+        return pairType;
     }
 }

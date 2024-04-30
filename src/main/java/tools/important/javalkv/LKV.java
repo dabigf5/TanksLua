@@ -10,13 +10,7 @@ public class LKV {
     }
 
     private static LKVValue convert(String typeName, String rawValue) throws LKVParseException {
-        LKVType pairType = null;
-        for (LKVType type : LKVType.values()) {
-            if (type.typeName.equals(typeName)) {
-                pairType = type;
-                break;
-            }
-        }
+        LKVType pairType = LKVType.findType(typeName);
 
         if (pairType == null) throw new LKVParseException("Type " + typeName + " is not a valid type!");
         Object converted;

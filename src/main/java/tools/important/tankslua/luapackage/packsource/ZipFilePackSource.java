@@ -8,4 +8,9 @@ public class ZipFilePackSource implements PackSource {
     public File getFile(String fileName) {
         return null;
     }
+
+    @Override
+    public String getPackName() {
+        return null;
+    }
 }

@@ -6,26 +6,28 @@ import tanks.Drawing;
 import tanks.Game;
 import tanks.gui.Button;
 import tanks.gui.screen.Screen;
-import tools.important.tankslua.luapackage.LuaExtension;
-import tools.important.tankslua.luapackage.verification.EntryType;
+import tools.important.javalkv.LKVType;
 import tools.important.tankslua.SafeLuaRunner;
 import tools.important.tankslua.TanksLua;
+import tools.important.tankslua.gui.ToggleOptionButton;
 import tools.important.tankslua.gui.extensionoption.Checkbox;
 import tools.important.tankslua.gui.extensionoption.ExtensionOptionElement;
+import tools.important.tankslua.luapackage.LuaExtension;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ScreenOptionsLuaInspectExtension extends Screen {
-    private static final double beginningOptionYPositionMultiplier = 1.2;
+    private static final double beginningOptionYPositionMultiplier = 1;
     private static final double yPositionMultiplierAdded = 2;
-    private static final HashMap<Lua.LuaType, Class<? extends ExtensionOptionElement>> elementTypes = new HashMap<>();
+    private static final HashMap<LKVType, Class<? extends ExtensionOptionElement>> elementTypes = new HashMap<>();
     static {
-        elementTypes.put(Lua.LuaType.BOOLEAN, Checkbox.class);
+        elementTypes.put(LKVType.BOOLEAN, Checkbox.class);
     }
-    private final LuaExtension extension;
+    public final LuaExtension extension;
     private final HashMap<String, ExtensionOptionElement> optionElements = new HashMap<>();
     public Button backButton;
+    public Button toggleEnabled;
 
     private final double optionsTextX = centerX-objWidth*1.5;
     private final double optionsTextY = centerY-objHeight*2;
@@ -36,11 +38,11 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
 
         double yPositionMultiplier = beginningOptionYPositionMultiplier;
 
-        for (Map.Entry<String, EntryType> optionType : extension.optionTypes.entrySet()) {
+        for (Map.Entry<String, LKVType> optionType : extension.optionTypes.entrySet()) {
             double thisEntryY = optionsTextY+(objHeight*yPositionMultiplier);
             String optionName = optionType.getKey();
-            Lua.LuaType luaType = optionType.getValue().type;
-            Class<? extends ExtensionOptionElement> uiElementClassForOption = elementTypes.get(luaType);
+            LKVType lkvType = optionType.getValue();
+            Class<? extends ExtensionOptionElement> uiElementClassForOption = elementTypes.get(lkvType);
 
             ExtensionOptionElement newExtensionOptionElement;
 
@@ -55,7 +57,7 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
             newExtensionOptionElement.setInitialState(extension.optionValues.get(optionName));
             newExtensionOptionElement.setOnValueChanged((Object newValue) -> {
                 extension.optionValues.put(optionName, newValue);
-//                LuaExtension.saveExtensionOptions();
+
                 LuaValue fOnNewOptions = extension.callbacks.get("onNewOptions");
                 if (fOnNewOptions.type() == Lua.LuaType.NIL) return;
 
@@ -64,11 +66,25 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
             yPositionMultiplier += yPositionMultiplierAdded;
         }
 
-        this.backButton = new Button(centerX, centerY+objHeight*7, objWidth, objHeight, "Back", () -> Game.screen = new ScreenOptionsLuaExtensionList());
+        this.backButton = new Button(
+                centerX,
+                centerY+objHeight*7,
+                objWidth,
+                objHeight,
+                "Back",
+                () -> Game.screen = new ScreenOptionsLuaExtensionList()
+        );
+
+        this.toggleEnabled = new ToggleOptionButton(centerX, centerY+objHeight*5, objWidth, objHeight, "Enabled",
+                () -> extension.enabled = true,
+                () -> extension.enabled = false,
+                extension.enabled
+        );
     }
     @Override
     public void update() {
         backButton.update();
+        toggleEnabled.update();
         for (ExtensionOptionElement e: optionElements.values()) {
             e.update();
         }
@@ -79,6 +95,7 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
         drawDefaultBackground();
 
         backButton.draw();
+        toggleEnabled.draw();
 
         Drawing.drawing.setColor(0,0,0);
 
@@ -96,6 +113,8 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
         Drawing.drawing.displayInterfaceText(centerX, centerY-objHeight*2, extension.version.toVersionString());
 
         if (extension.optionTypes.isEmpty()) return;
+
+
         Drawing.drawing.setFontSize(titleSize);
         Drawing.drawing.drawText(optionsTextX, optionsTextY, "Options");
         Drawing.drawing.setFontSize(titleSize*0.7);

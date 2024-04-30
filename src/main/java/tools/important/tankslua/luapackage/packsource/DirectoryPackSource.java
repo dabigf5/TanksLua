@@ -18,4 +18,9 @@ public class DirectoryPackSource implements PackSource {
 
         return matches[0];
     }
+
+    @Override
+    public String getPackName() {
+        return directory.getName();
+    }
 }
