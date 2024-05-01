@@ -1,25 +1,25 @@
 # TanksLua
 ![TanksLua Logo](tankslualogo_128x128.png)
 
-TanksLua is an extension for Tanks: The Crusades which allows for lua scripting.\
-please note that this extension is quite early in development, and subject to change
+TanksLua is an extension for Tanks: The Crusades which allows for Lua scripting.\
+Please note that this extension is quite early in development, and highly subject to change.
 
 ## How-to
-(information here is outdated for 0.3.0+, will fix at some point)
+(Information here is outdated for 0.3.0+, will fix at some point)
 
-all things related to this extension are stored in a special directory, `.tanks/scripts/`
+All things related to this extension are stored in a special directory, `.tanks/scripts/`.
 ### Level Script Example
-a level script is simply a script that runs when a level is loaded\
-in order to set up one, you create a lua file in `.tanks/scripts/level/` which is the name of the level, but with `.lua` as the extension instead of `.tanks`
+A level script is simply a script that runs when a level is loaded.\
+In order to set one up, you create a Lua file in `.tanks/scripts/level/` which is the name of the level, but with `.lua` as the extension instead of `.tanks`
 
-here's an example level script that does completely nothing:
+Here's an example level script that does completely nothing:
 ```lua
 local level = {}
 
 return level
 ```
 
-now here's one that prints "loaded" to the console when it's loaded, and "updated" to the console every frame:
+Now here's one that prints "loaded" to the console when it's loaded, and "updated" to the console every frame:
 ```lua
 local level = {}
 
@@ -35,10 +35,10 @@ return level
 ```
 
 ### Extension Example
-this extension supports lua extensions, so you can have extensions inside your extension
+This extension supports Lua extensions, so you can have extensions inside your extension.
 
-in order to create an extension, create a lua file in `.tanks/scripts/extensions/` and name it whatever you want, as long as it ends with `.lua`\
-here's an example of an extension that does completely nothing:
+In order to create an extension, create a Lua file in `.tanks/scripts/extensions/` and name it whatever you want, as long as it ends with `.lua`.
+Here's an example of an extension that does completely nothing:
 
 ```lua
 local extension = {
@@ -54,7 +54,7 @@ local extension = {
 return extension
 ```
 
-and here's one that prints "loaded" to the console when it's loaded, and "updated" to the console every frame:
+And here's one that prints "loaded" to the console when it's loaded, and "updated" to the console every frame:
 ```lua
 local extension = {
     name = "My Extension",
@@ -77,7 +77,7 @@ end
 return extension
 ```
 
-extensions can also have options, accessible through the Lua Options menu (only booleans are supported right now):
+Extensions can also have options, accessible through the Lua Options menu (only booleans are supported right now):
 ```lua
 local enableUpdatePrint
 
