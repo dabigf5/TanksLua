@@ -69,7 +69,7 @@ public final class TanksLib implements LuaLib {
             if (argnum == 3) {
                 LuaValue volumeLuaVal = luaState.get();
                 if (volumeLuaVal.type() != Lua.LuaType.NUMBER) {
-                    throw new LuaException("incorrect type for pitch supplied to playSound");
+                    throw new LuaException("incorrect type for volume supplied to playSound");
                 }
                 //noinspection DataFlowIssue
                 volume = ((Double) volumeLuaVal.toJavaObject()).floatValue();
