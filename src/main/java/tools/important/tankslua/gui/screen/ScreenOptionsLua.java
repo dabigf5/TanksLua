@@ -71,5 +71,7 @@ public class ScreenOptionsLua extends Screen {
         Drawing.drawing.setColor(0, 0, 0);
         Drawing.drawing.setInterfaceFontSize(titleSize);
         Drawing.drawing.displayInterfaceText(centerX, centerY - objYSpace * 3.5, "Lua Options");
+        Drawing.drawing.setInterfaceFontSize(titleSize/2);
+        Drawing.drawing.displayInterfaceText(centerX, centerY - objYSpace * 3, TanksLua.VERSION);
     }
 }

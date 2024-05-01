@@ -31,7 +31,7 @@ public class LuaExtension extends LuaPackage {
         loadCallbacks(extensionLuaFile);
 
         LuaValue fOnLoad = callbacks.get("onLoad");
-        if (fOnLoad.type() != Lua.LuaType.NIL) {
+        if (fOnLoad != null && fOnLoad.type() != Lua.LuaType.NIL) {
             SafeLuaRunner.safeCall(fOnLoad);
         }
         onNewOptions();
@@ -172,6 +172,8 @@ public class LuaExtension extends LuaPackage {
 
     private static final String ENABLED_KEY = "ENABLED";
     private void loadOptionValues() {
+        if (this.isDecoy) return;
+
         File optionsLkvFile = getOptionsLkvFile();
         if (!optionsLkvFile.exists()) return;
 
@@ -203,6 +205,8 @@ public class LuaExtension extends LuaPackage {
         }
     }
     public void saveOptions() {
+        if (this.isDecoy) return;
+
         File optionsLkvFile = getOptionsLkvFile();
 
         StringBuilder optionsFileBuilder = new StringBuilder("boolean ENABLED = ").append(enabled).append("\n\n");
@@ -223,7 +227,7 @@ public class LuaExtension extends LuaPackage {
     }
     public void onNewOptions() {
         LuaValue fOnNewOptions = callbacks.get("onNewOptions");
-        if (fOnNewOptions.type() != Lua.LuaType.NIL) {
+        if (fOnNewOptions != null && fOnNewOptions.type() != Lua.LuaType.NIL) {
             SafeLuaRunner.safeCall(fOnNewOptions, getOptionsLuaTable(luaState));
         }
     }
@@ -246,6 +250,8 @@ public class LuaExtension extends LuaPackage {
     }
 
     private void loadCallbacks(File extensionLuaFile) {
+        if (isDecoy) return;
+
         LuaValue table = getAndVerifyTableFrom(extensionLuaFile, CALLBACK_TYPES);
 
         for (String callbackName : CALLBACK_TYPES.keySet()) {
@@ -260,6 +266,7 @@ public class LuaExtension extends LuaPackage {
 
     public static void loadExtensionsTo(List<LuaExtension> extensionList) {
 //        loadDecoys(extensionList,30);
+
         File extensionDirectory = new File(TanksLua.FULL_SCRIPT_PATH + "/extensions/");
         File[] extensionFiles = Objects.requireNonNull(extensionDirectory.listFiles());
 
@@ -285,75 +292,10 @@ public class LuaExtension extends LuaPackage {
 
     private LuaExtension() {
     }
-
+    private boolean isDecoy;
     @SuppressWarnings({"unused", "SameParameterValue"})
     private static void loadDecoys(List<LuaExtension> extensionList, int amount) {
-        @SuppressWarnings("NullableProblems")
-        class LuaGaslightMap<K, V> implements Map<K, V> {
-            @Override
-            public int size() {
-                return 0;
-            }
-
-            @Override
-            public boolean isEmpty() {
-                return false;
-            }
-
-            @Override
-            public boolean containsKey(Object key) {
-                return false;
-            }
-
-            @Override
-            public boolean containsValue(Object value) {
-                return false;
-            }
-
-            @Override
-            public V get(Object key) {
-                return (V) TanksLua.tanksLua.internalLuaState.fromNull();
-            }
-
-
-            @Override
-            public V put(K key, V value) {
-                return null;
-            }
-
-            @Override
-            public V remove(Object key) {
-                return null;
-            }
-
-            @Override
-            public void putAll(Map<? extends K, ? extends V> m) {
-
-            }
-
-            @Override
-            public void clear() {
-
-            }
-
-
-            @Override
-            public Set<K> keySet() {
-                return null;
-            }
-
-
-            @Override
-            public Collection<V> values() {
-                return null;
-            }
-
-
-            @Override
-            public Set<Entry<K, V>> entrySet() {
-                return null;
-            }
-        }
+        Map<String, LuaValue> callbacks = new HashMap<>();
 
         for (int num = 1; num <= amount; num++) {
             LuaExtension decoy = new LuaExtension();
@@ -362,7 +304,8 @@ public class LuaExtension extends LuaPackage {
             decoy.description = "not real";
             decoy.version = new SemanticVersion(1, 0, 0);
             decoy.enabled = false;
-            decoy.callbacks = new LuaGaslightMap<>();
+            decoy.callbacks = callbacks;
+            decoy.isDecoy = true;
 
             extensionList.add(decoy);
         }

@@ -35,10 +35,16 @@ public class ScreenOptionsLuaExtensionList extends Screen {
         ArrayList<LuaExtension> extList = TanksLua.tanksLua.loadedLuaExtensions;
         ArrayList<Button> buttons = new ArrayList<>();
         for (LuaExtension extension: extList) {
+            String disabledString = "";
+
+            if (!extension.enabled) {
+                disabledString = "[disabled]";
+            }
+
             buttons.add(new Button(0,0,0,0,
                     extension.name,
                     () -> Game.screen = new ScreenOptionsLuaInspectExtension(extension),
-                    "by "+extension.authorName
+                    "by "+extension.authorName + "---" + extension.description + "---" + disabledString
             ));
         }
 
