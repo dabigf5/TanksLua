@@ -1,4 +1,6 @@
 # TanksLua
+![TanksLua Logo](tankslualogo.png)
+
 TanksLua is an extension for Tanks: The Crusades which allows for lua scripting.\
 please note that this extension is quite early in development, and subject to change
 
