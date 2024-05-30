@@ -4,12 +4,12 @@ import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.LuaException;
 import party.iroiro.luajava.lua54.Lua54;
 import party.iroiro.luajava.value.LuaValue;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import tools.important.tankslua.SafeLuaRunner;
 import tools.important.tankslua.TanksLua;
 import tools.important.tankslua.luapackage.packsource.DecoyPackSource;
 import tools.important.tankslua.luapackage.packsource.DirectoryPackSource;
 import tools.important.tankslua.luapackage.packsource.PackSource;
+import tools.important.tankslua.luapackage.packsource.ZipFilePackSource;
 import tools.important.tankslua.luapackage.verification.EntryType;
 
 import java.io.File;
@@ -29,9 +29,8 @@ public abstract class LuaPackage {
         }
 
         if (packFile.isFile()) {
-            throw new NotImplementedException();
-//          this.packSource = new ZipFilePackSource(packFile);
-//          return;
+            this.packSource = new ZipFilePackSource(packFile);
+            return;
         }
 
         throw new IllegalArgumentException("Unable to recognize packFile as a valid package!");

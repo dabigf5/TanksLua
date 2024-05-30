@@ -1,5 +1,6 @@
 package tools.important.tankslua;
 
+import org.apache.commons.io.FilenameUtils;
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.LuaException;
 import party.iroiro.luajava.value.LuaValue;
@@ -72,9 +73,9 @@ public class TanksEventListener {
 
     private void onLevelLoaded(ScreenGame sg) {
         String levelName = sg.name;
-        boolean levelScriptsEnabled = (boolean) TanksLua.tanksLua.getOptionValue("enableLevelScripts");
 
-        if (levelName != null) levelName = levelName.replace(".tanks", "");
+        if (levelName != null) levelName = FilenameUtils.removeExtension(levelName);
+        boolean levelScriptsEnabled = (boolean) TanksLua.tanksLua.getOptionValue("enableLevelScripts");
 
         if (levelScriptsEnabled) {
             try {

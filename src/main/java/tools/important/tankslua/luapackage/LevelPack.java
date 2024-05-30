@@ -1,12 +1,12 @@
 package tools.important.tankslua.luapackage;
 
+import org.apache.commons.io.FilenameUtils;
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.value.LuaValue;
 import tools.important.javalkv.LKVParseException;
 import tools.important.tankslua.SafeLuaRunner;
 import tools.important.tankslua.TanksLua;
 import tools.important.tankslua.luapackage.verification.EntryType;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
@@ -28,7 +28,7 @@ public class LevelPack extends LuaPackage {
         if (levelName == null) return null;
 
         File[] matches = new File(TanksLua.FULL_SCRIPT_PATH + "/level/").listFiles(
-                (dir, name) -> name.startsWith(levelName.toLowerCase())
+                (dir, name) -> FilenameUtils.removeExtension(name).equals(levelName)
         );
 
         if (matches == null) return null;

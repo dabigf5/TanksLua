@@ -145,6 +145,7 @@ public final class TanksLua extends Extension {
     @Override
     public void setUp() {
         tanksLua = this;
+
         loadedLuaExtensions = new LuaCompatibleArrayList<>();
 
         if (!new File(FULL_SCRIPT_PATH).exists())
