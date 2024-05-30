@@ -16,19 +16,14 @@ public class LuaExtension extends LuaPackage {
     private LuaExtension(File extensionFile)
             throws LKVParseException, ExtensionMetaParseException, ExtensionOptionParseException, FileNotFoundException {
         super(extensionFile);
+        String extensionMeta = packSource.readPlaintextFile("extension-meta.lkv");
 
-        File extensionLuaFile = getExtensionLuaFile();
-        File extensionMetaFile = packSource.getFile("extension-meta.lkv");
+        loadMeta(extensionMeta);
 
-        if (extensionMetaFile == null)
-            throw new FileNotFoundException("Missing metadata file for extension " + extensionFile.getName());
-
-        loadMeta(extensionMetaFile);
         loadOptionValues();
 
         if (!enabled) return;
-
-        loadCallbacks(extensionLuaFile);
+        loadCallbacks(packSource.readPlaintextFile("extension.lua"));
 
         LuaValue fOnLoad = callbacks.get("onLoad");
         if (fOnLoad != null && fOnLoad.type() != Lua.LuaType.NIL) {
@@ -42,11 +37,8 @@ public class LuaExtension extends LuaPackage {
     public String authorName;
     public SemanticVersion version;
 
-    private void loadMeta(File extensionMetaFile) {
-        String content = TanksLua.readContentsOfFile(extensionMetaFile);
-
+    private void loadMeta(String content) {
         HashMap<String, LKVValue> pairs = LKV.parse(content);
-
 
         // maybe change this if there's a lot of metadata
 
@@ -245,23 +237,20 @@ public class LuaExtension extends LuaPackage {
         CALLBACK_TYPES.put("onNewOptions", new EntryType(Lua.LuaType.FUNCTION, true));
     }
 
-    private File getExtensionLuaFile() {
-        return packSource.getFile("extension.lua");
-    }
-
-    private void loadCallbacks(File extensionLuaFile) {
+    private void loadCallbacks(String code) {
         if (isDecoy) return;
 
-        LuaValue table = getAndVerifyTableFrom(extensionLuaFile, CALLBACK_TYPES);
+        LuaValue table = getAndVerifyTableFrom(code, CALLBACK_TYPES);
 
         for (String callbackName : CALLBACK_TYPES.keySet()) {
             callbacks.put(callbackName, table.get(callbackName));
         }
     }
+
     public void loadCallbacksIfNone() {
         if (!callbacks.isEmpty()) return;
 
-        loadCallbacks(getExtensionLuaFile());
+        loadCallbacks(packSource.readPlaintextFile("extension.lua"));
     }
 
     public static void loadExtensionsTo(List<LuaExtension> extensionList) {

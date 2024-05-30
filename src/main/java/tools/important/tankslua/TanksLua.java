@@ -17,7 +17,6 @@ import tools.important.javalkv.LKVValue;
 import tools.important.tankslua.gui.EvalBox;
 import tools.important.tankslua.gui.screen.ScreenOptionsLua;
 import tools.important.tankslua.luacompatible.LuaCompatibleArrayList;
-import tools.important.tankslua.lualib.JavaLibExtras;
 import tools.important.tankslua.lualib.LuaLib;
 import tools.important.tankslua.lualib.TanksLib;
 import tools.important.tankslua.luapackage.LevelPack;
@@ -31,7 +30,7 @@ public final class TanksLua extends Extension {
      * The one and only instance of TanksLua.
      */
     public static TanksLua tanksLua;
-    public static final String VERSION = "TanksLua Alpha 0.2.0";
+    public static final String VERSION = "TanksLua Alpha 0.3.0 (Bleeding Edge)";
 
 
 
@@ -105,7 +104,6 @@ public final class TanksLua extends Extension {
 
     private static final LuaLib[] defaultLibraries = {
             new TanksLib(),
-            new JavaLibExtras(),
     };
     public static void openCustomLibs(Lua luaState) {
         for (LuaLib lib : defaultLibraries) {

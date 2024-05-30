@@ -4,8 +4,6 @@ import party.iroiro.luajava.Consts;
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.value.LuaValue;
 
-import java.io.File;
-
 /**
  * A class purely with static members which is for running lua functions
  * if it's unknown whether the function will throw a lua error.
@@ -63,7 +61,6 @@ public final class SafeLuaRunner {
             return new LuaResult(result, error);
         }
 
-
         int returnCount = luaState.getTop() - top;
 
         if (!popReturns) {
@@ -113,66 +110,15 @@ public final class SafeLuaRunner {
     }
 
     /**
-     * Loads a Lua file, calls it, and properly handles any loading errors that may occur.
-     * This method uses a set of defaults to fill in the missing other parameters.
-     *
-     * @param luaState The lua state to use to load the file.
-     * @param file The lua file you wish to load.
-     * @return The function loaded from the lua file, or null if the load failed
-     */
-    public static LuaResult safeLoadFile(Lua luaState, File file) {
-        return safeLoadFile(luaState, file.getPath(), null);
-    }
-
-    /**
-     * Loads a Lua file, calls it, and properly handles any loading errors that may occur.
-     * This method uses a set of defaults to fill in the missing other parameters.
-     *
-     * @param luaState The lua state to use to load the file.
-     * @param filePathToLoad The path to the lua file you wish to load.
-     * @return The function loaded from the lua file, or null if the load failed
-     */
-    public static LuaResult safeLoadFile(Lua luaState, String filePathToLoad) {
-        return safeLoadFile(luaState, filePathToLoad, null);
-    }
-
-    /**
-     * Loads a Lua file, calls it, and properly handles any syntax errors that may occur.
-     * @param luaState The lua state to load the lua file with.
-     * @param filePathToLoad The path to the lua file you wish to load.
-     * @param tEnv The environment to load the file in. Can be null.
-     * @return The function loaded from the lua file, or null if the load failed
-     */
-    public static LuaResult safeLoadFile(Lua luaState, String filePathToLoad, LuaValue tEnv) {
-        return safeCallLoadFunc(luaState, "loadfile", filePathToLoad, tEnv);
-    }
-
-    /**
      * Loads a string and properly handles any syntax errors that may occur.
      * @param luaState The lua state to load the string with
-     * @param stringToLoad The string you wish to load
+     * @param code The string you wish to load
      * @return That string loaded as a function, or null if the load failed
      */
-    public static LuaResult safeLoadString(Lua luaState, String stringToLoad) {
-        return safeCallLoadFunc(luaState, "load", stringToLoad, null);
-    }
-
-    /**
-     * A private utility function that will simply call a function with one argument, and in the given lua state.
-     * @param luaState The lua state to call the function with.
-     * @param funcName The name of the function
-     * @param argument The one argument to pass to the function
-     * @param tEnv The environment to call the function inside.
-     * @return Either the function, or null if it failed.
-     */
-    private static LuaResult safeCallLoadFunc(Lua luaState, String funcName, String argument, LuaValue tEnv) {
+    public static LuaResult safeLoadString(Lua luaState, String code) {
         LuaValue[] loadResult;
 
-        if (tEnv != null) {
-            loadResult = luaState.get(funcName).call(argument, null, tEnv);
-        } else {
-            loadResult = luaState.get(funcName).call(argument, null);
-        }
+        loadResult = luaState.get("load").call(code, null);
 
         LuaValue fLoadedString = loadResult[0];
         if (fLoadedString.type() == Lua.LuaType.NIL) {

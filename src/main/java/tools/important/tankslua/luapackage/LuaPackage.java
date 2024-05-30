@@ -7,11 +7,12 @@ import party.iroiro.luajava.value.LuaValue;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import tools.important.tankslua.SafeLuaRunner;
 import tools.important.tankslua.TanksLua;
+import tools.important.tankslua.luapackage.packsource.DecoyPackSource;
 import tools.important.tankslua.luapackage.packsource.DirectoryPackSource;
 import tools.important.tankslua.luapackage.packsource.PackSource;
 import tools.important.tankslua.luapackage.verification.EntryType;
 
-import java.io.*;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,34 +29,25 @@ public abstract class LuaPackage {
         }
 
         if (packFile.isFile()) {
-            //todo: zip support
             throw new NotImplementedException();
+//          this.packSource = new ZipFilePackSource(packFile);
+//          return;
         }
 
         throw new IllegalArgumentException("Unable to recognize packFile as a valid package!");
     }
     protected LuaPackage() { // for the purpose of decoys
-        packSource = new PackSource() {
-            @Override
-            public File getFile(String fileName) {
-                return null;
-            }
-
-            @Override
-            public String getPackName() {
-                return "decoy";
-            }
-        };
+        packSource = new DecoyPackSource();
     }
 
-    protected LuaValue getAndVerifyTableFrom(File file, HashMap<String, EntryType> types) {
-        SafeLuaRunner.LuaResult loadFileResult = SafeLuaRunner.safeLoadFile(luaState, file);
+    protected LuaValue getAndVerifyTableFrom(String code, HashMap<String, EntryType> types) {
+        SafeLuaRunner.LuaResult loadResult = SafeLuaRunner.safeLoadString(luaState, code);
 
-        if (loadFileResult.status != Lua.LuaError.OK) {
+        if (loadResult.status != Lua.LuaError.OK) {
             throw new LuaException("An error occurred while loading the file!");
         }
 
-        SafeLuaRunner.LuaResult runResult = SafeLuaRunner.safeCall(loadFileResult.returns[0]);
+        SafeLuaRunner.LuaResult runResult = SafeLuaRunner.safeCall(loadResult.returns[0]);
 
         if (runResult.status != Lua.LuaError.OK) {
             throw new LuaException("An error occurred while running the file!");

@@ -15,9 +15,7 @@ public class LevelPack extends LuaPackage {
     public LevelPack(File levelPackFile) throws LKVParseException, FileNotFoundException {
         super(levelPackFile);
 
-        File levelLuaFile = packSource.getFile("level.lua");
-
-        loadCallbacks(levelLuaFile);
+        loadCallbacksFrom(packSource.readPlaintextFile("level.lua"));
 
         LuaValue fOnLoad = callbacks.get("onLoad");
         if (fOnLoad.type() == Lua.LuaType.NIL) return;
@@ -26,7 +24,6 @@ public class LevelPack extends LuaPackage {
     }
     public static LevelPack fromLevelName(String levelName) {
         if (levelName == null) return null;
-
 
         File[] matches = new File(TanksLua.FULL_SCRIPT_PATH + "/level/").listFiles(
                 (dir, name) -> name.startsWith(levelName.toLowerCase())
@@ -51,8 +48,8 @@ public class LevelPack extends LuaPackage {
         CALLBACK_TYPES.put("onDraw", new EntryType(Lua.LuaType.FUNCTION, true));
         CALLBACK_TYPES.put("onUpdate", new EntryType(Lua.LuaType.FUNCTION, true));
     }
-    private void loadCallbacks(File levelLuaFile) {
-        LuaValue table = getAndVerifyTableFrom(levelLuaFile, CALLBACK_TYPES);
+    private void loadCallbacksFrom(String code) {
+        LuaValue table = getAndVerifyTableFrom(code, CALLBACK_TYPES);
 
         for (String callbackName : CALLBACK_TYPES.keySet()) {
             callbacks.put(callbackName, table.get(callbackName));

@@ -1,8 +1,7 @@
 package tools.important.tankslua.luapackage.packsource;
 
-import java.io.File;
-
 public interface PackSource {
-    File getFile(String fileName);
+    String readPlaintextFile(String fileName);
+    byte[] readBinaryFile(String fileName);
     String getPackName();
 }

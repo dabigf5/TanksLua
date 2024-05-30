@@ -1,7 +1,6 @@
 package tools.important.tankslua.luapackage.packsource;
 
-public class ZipFilePackSource implements PackSource {
-    // todo: this class
+public class DecoyPackSource implements PackSource{
     @Override
     public String readPlaintextFile(String fileName) {
         return null;
@@ -14,6 +13,6 @@ public class ZipFilePackSource implements PackSource {
 
     @Override
     public String getPackName() {
-        return null;
+        return "decoy";
     }
 }
