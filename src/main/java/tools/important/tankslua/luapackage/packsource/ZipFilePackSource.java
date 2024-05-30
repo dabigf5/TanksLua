@@ -13,12 +13,36 @@ public class ZipFilePackSource implements PackSource {
     }
 
     @Override
-    public String readPlaintextFile(String fileName) {
+    public boolean isFile(String filePath) {
+        try (
+                ZipFile zipFile = new ZipFile(file)
+        ) {
+            ZipEntry entry = zipFile.getEntry(filePath);
+            return entry != null && !entry.isDirectory();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean isDirectory(String filePath) {
+        try (
+                ZipFile zipFile = new ZipFile(file)
+        ) {
+            ZipEntry entry = zipFile.getEntry(filePath);
+            return entry != null && entry.isDirectory();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public String readPlaintextFile(String filePath) {
         StringBuilder textBuilder = new StringBuilder();
 
         try (ZipFile zipFile = new ZipFile(file)) {
-            ZipEntry entry = zipFile.getEntry(fileName);
-            if (entry == null) throw new RuntimeException("File "+fileName+" not found in zip");
+            ZipEntry entry = zipFile.getEntry(filePath);
+            if (entry == null) return null;
             try (InputStream inputStream = zipFile.getInputStream(entry);
                  InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                  BufferedReader bufferedReader = new BufferedReader(inputStreamReader)
@@ -37,13 +61,13 @@ public class ZipFilePackSource implements PackSource {
     }
 
     @Override
-    public byte[] readBinaryFile(String fileName) {
+    public byte[] readBinaryFile(String filePath) {
         // this might be the single most untested method in the whole project
         byte[] bytes;
 
         try (ZipFile zipFile = new ZipFile(file)) {
-            ZipEntry entry = zipFile.getEntry(fileName);
-            if (entry == null) throw new RuntimeException("File "+fileName+" not found in zip");
+            ZipEntry entry = zipFile.getEntry(filePath);
+            if (entry == null) return null;
             try (InputStream inputStream = zipFile.getInputStream(entry)
             ) {
                 byte[] buffer = new byte[(int) entry.getSize()];

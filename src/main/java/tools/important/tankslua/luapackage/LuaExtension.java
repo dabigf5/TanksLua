@@ -1,6 +1,7 @@
 package tools.important.tankslua.luapackage;
 
 import party.iroiro.luajava.Lua;
+import party.iroiro.luajava.LuaException;
 import party.iroiro.luajava.value.LuaValue;
 import tools.important.javalkv.*;
 import tools.important.tankslua.Notification;
@@ -16,14 +17,24 @@ public class LuaExtension extends LuaPackage {
     private LuaExtension(File extensionFile)
             throws LKVParseException, ExtensionMetaParseException, ExtensionOptionParseException, FileNotFoundException {
         super(extensionFile);
-        String extensionMeta = packSource.readPlaintextFile("extension-meta.lkv");
+        TanksLua.initializeStateSearchers(luaState, packSource);
 
+        String extensionMeta = packSource.readPlaintextFile("extension-meta.lkv");
+        if (extensionMeta == null) {
+            throw new FileNotFoundException("Extension "+packSource.getPackName()+" is missing a metadata file!");
+        }
         loadMeta(extensionMeta);
 
         loadOptionValues();
 
         if (!enabled) return;
-        loadCallbacks(packSource.readPlaintextFile("extension.lua"));
+        String code = packSource.readPlaintextFile("extension.lua");
+        if (code == null) {
+            new Notification(Notification.NotificationType.WARN, 5, "Extension "+packSource.getPackName()+" is missing its extension.lua file!");
+            return;
+        }
+
+        loadCallbacks(code);
 
         LuaValue fOnLoad = callbacks.get("onLoad");
         if (fOnLoad != null && fOnLoad.type() != Lua.LuaType.NIL) {
@@ -240,7 +251,14 @@ public class LuaExtension extends LuaPackage {
     private void loadCallbacks(String code) {
         if (isDecoy) return;
 
-        LuaValue table = getAndVerifyTableFrom(code, "extension:"+this.name, CALLBACK_TYPES);
+        LuaValue table;
+        try {
+            table = getAndVerifyTableFrom(code, "extension:"+packSource.getPackName(), CALLBACK_TYPES);
+        } catch (LuaException e) {
+            new Notification(Notification.NotificationType.WARN, 5, "Extension "+packSource.getPackName()+" ran into a problem verifying: "+e.getMessage());
+            return;
+        }
+
 
         for (String callbackName : CALLBACK_TYPES.keySet()) {
             callbacks.put(callbackName, table.get(callbackName));
@@ -250,7 +268,14 @@ public class LuaExtension extends LuaPackage {
     public void loadCallbacksIfNone() {
         if (!callbacks.isEmpty()) return;
 
-        loadCallbacks(packSource.readPlaintextFile("extension.lua"));
+        String code = packSource.readPlaintextFile("extension.lua");
+
+        if (code == null) {
+            new Notification(Notification.NotificationType.WARN, 5, "Extension "+packSource.getPackName()+" is missing its extension.lua file!");
+            return;
+        }
+
+        loadCallbacks(code);
     }
 
     public static void loadExtensionsTo(List<LuaExtension> extensionList) {
@@ -272,7 +297,7 @@ public class LuaExtension extends LuaPackage {
                 new Notification(Notification.NotificationType.WARN, 5, "TanksLua ran into a problem parsing " + file.getName() + "'s options! See log for details");
                 e.printStackTrace();
             } catch (FileNotFoundException e) {
-                new Notification(Notification.NotificationType.WARN, 5, "Extension " + file.getName() + " has a missing metadata file! See log for details");
+                new Notification(Notification.NotificationType.WARN, 5, e.getMessage());
                 e.printStackTrace();
             }
         }

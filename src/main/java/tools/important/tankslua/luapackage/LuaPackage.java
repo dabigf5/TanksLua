@@ -1,5 +1,6 @@
 package tools.important.tankslua.luapackage;
 
+import org.apache.commons.io.FilenameUtils;
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.LuaException;
 import party.iroiro.luajava.lua54.Lua54;
@@ -19,21 +20,48 @@ import java.util.Map;
 public abstract class LuaPackage {
     protected final PackSource packSource;
     protected final Lua luaState = new Lua54();
-    public LuaPackage(File packFile) {
-        luaState.openLibraries();
-        TanksLua.openCustomLibs(luaState);
 
+    private PackSource getPackSource(File packFile) {
         if (packFile.isDirectory()) {
-            this.packSource = new DirectoryPackSource(packFile);
-            return;
+            return new DirectoryPackSource(packFile);
         }
 
-        if (packFile.isFile()) {
-            this.packSource = new ZipFilePackSource(packFile);
-            return;
-        }
+        String fileExtension = FilenameUtils.getExtension(packFile.getName());
 
-        throw new IllegalArgumentException("Unable to recognize packFile as a valid package!");
+        if (fileExtension.equals("zip"))
+            return new ZipFilePackSource(packFile);
+
+
+        throw new IllegalArgumentException("Attempt to construct LuaPackage with unsupported filetype");
+    }
+
+
+    public LuaPackage(File packFile) {
+        packSource = getPackSource(packFile);
+
+        luaState.openLibraries();
+        TanksLua.initializeState(luaState);
+
+        luaState.push((state) -> {
+            int args = state.getTop();
+            if (args != 1) throw new LuaException("Incorrect amount of arguments for readFile");
+            Object arg = state.get().toJavaObject();
+            if (!(arg instanceof String)) {
+                throw new LuaException("readFile expects a string");
+            }
+            String path = (String) arg;
+
+            String content = packSource.readPlaintextFile(path);
+
+            if (content != null) {
+                state.push(content);
+            } else {
+                state.pushNil();
+            }
+
+            return 1;
+        });
+        luaState.setGlobal("readFile");
     }
     protected LuaPackage() { // for the purpose of decoys
         packSource = new DecoyPackSource();

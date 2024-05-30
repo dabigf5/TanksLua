@@ -27,7 +27,7 @@ public class EvalBox {
         Screen screen = Game.screen;
         luaState = new Lua54();
         luaState.openLibraries();
-        TanksLua.openCustomLibs(luaState);
+        TanksLua.initializeState(luaState);
 
         evalCodeBox = new TextBox(screen.centerX, screen.objYSpace, screen.objWidth * 4, screen.objHeight, "Lua Code", () -> {
         }, "");

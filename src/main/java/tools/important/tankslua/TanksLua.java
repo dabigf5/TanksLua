@@ -2,7 +2,9 @@ package tools.important.tankslua;
 
 import main.Tanks;
 import party.iroiro.luajava.Lua;
+import party.iroiro.luajava.LuaException;
 import party.iroiro.luajava.lua54.Lua54;
+import party.iroiro.luajava.value.LuaValue;
 import tanks.Drawing;
 import tanks.Game;
 import tanks.Panel;
@@ -21,6 +23,7 @@ import tools.important.tankslua.lualib.LuaLib;
 import tools.important.tankslua.lualib.TanksLib;
 import tools.important.tankslua.luapackage.LevelPack;
 import tools.important.tankslua.luapackage.LuaExtension;
+import tools.important.tankslua.luapackage.packsource.PackSource;
 
 import java.io.*;
 import java.util.*;
@@ -77,7 +80,7 @@ public final class TanksLua extends Extension {
             throw new RuntimeException("Unable to create directory " + path);
         }
     }
-    // this may be needed one day
+
     private static void makeEmptyFile(String path) {
         File file = new File(path);
 
@@ -90,7 +93,7 @@ public final class TanksLua extends Extension {
             throw new RuntimeException("Unable to create file "+path);
         }
     }
-
+    // this may be needed one day
 //    private static void makeFileWithContents(String path, @SuppressWarnings("SameParameterValue") String contents) {
 //        try {
 //            BufferedWriter writer = new BufferedWriter(new FileWriter(path));
@@ -105,11 +108,94 @@ public final class TanksLua extends Extension {
     private static final LuaLib[] defaultLibraries = {
             new TanksLib(),
     };
-    public static void openCustomLibs(Lua luaState) {
+    public static void initializeState(Lua luaState) {
+        luaState.pushNil();
+        luaState.setGlobal("dofile");
+
+        luaState.pushNil();
+        luaState.setGlobal("loadfile");
+
+        luaState.getGlobal("package");
+        int packageStackIndex = luaState.getTop();
+
+        luaState.push("loadlib");
+        luaState.pushNil();
+        luaState.setTable(packageStackIndex);
+
+        luaState.push("searchpath");
+        luaState.pushNil();
+        luaState.setTable(packageStackIndex);
+
+        luaState.push("searchers");
+        luaState.createTable(0,0);
+        luaState.setTable(packageStackIndex);
+
         for (LuaLib lib : defaultLibraries) {
             lib.open(luaState);
         }
     }
+    public static void initializeStateSearchers(Lua luaState, PackSource packSource) {
+        luaState.getGlobal("package");
+        int packageStackIndex = luaState.getTop();
+        luaState.push("searchers");
+        luaState.getTable(packageStackIndex);
+
+        int searchersStackIndex = luaState.getTop();
+
+        luaState.push(1);
+        luaState.push((state) -> {
+            String rawPath = (String) state.get().toJavaObject();
+            if (rawPath == null) return 0;
+
+            String path = rawPath
+                    .replaceAll("[\\\\.]", "/");
+
+            String luaFilePath = path+".lua";
+
+            if (packSource.isFile(luaFilePath)) {
+                SafeLuaRunner.LuaResult result = SafeLuaRunner.safeLoadString(luaState, packSource.readPlaintextFile(luaFilePath), "extension:"+packSource.getPackName());
+                if (result.status != Lua.LuaError.OK) {
+                    throw new LuaException("Requested module ran into an error while loading");
+                }
+                LuaValue function = result.returns[0];
+
+                function.push();
+                return 1;
+            }
+            state.push("no file "+path+".lua");
+            return 1;
+        });
+        luaState.setTable(searchersStackIndex);
+
+        luaState.push(2);
+        luaState.push((state) -> {
+            String rawPath = (String) state.get().toJavaObject();
+            if (rawPath == null) return 0;
+
+            String initFilePath = rawPath
+                    .replaceAll("[\\\\.]", "/");
+            if (!initFilePath.endsWith("/")) initFilePath += "/";
+            initFilePath += "init.lua";
+
+            if (packSource.isFile(initFilePath)) {
+                SafeLuaRunner.LuaResult result = SafeLuaRunner.safeLoadString(luaState, packSource.readPlaintextFile(initFilePath), "extension:"+packSource.getPackName());
+                if (result.status != Lua.LuaError.OK) {
+                    throw new LuaException("Requested module ran into an error while loading");
+                }
+                LuaValue function = result.returns[0];
+
+                function.push();
+                return 1;
+            }
+
+            state.push("no file "+initFilePath);
+            return 1;
+        });
+        luaState.setTable(searchersStackIndex);
+
+        luaState.pop(1);
+    }
+
 
 
     public static String readContentsOfFile(File file) {
