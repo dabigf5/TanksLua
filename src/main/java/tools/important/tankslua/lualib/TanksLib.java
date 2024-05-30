@@ -3,7 +3,6 @@ package tools.important.tankslua.lualib;
 import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.LuaException;
 import party.iroiro.luajava.value.LuaValue;
-import tanks.Drawing;
 import tanks.Game;
 import tanks.ModAPI;
 import tools.important.tankslua.Notification;
@@ -22,12 +21,12 @@ public final class TanksLib implements LuaLib {
         luaState.setTable(tanksLibStackIndex);
 
         luaState.push("sendNotification");
-        luaState.push((ignored) -> {
-            int args = luaState.getTop();
+        luaState.push(state -> {
+            int args = state.getTop();
             if (args != 1) {
                 throw new LuaException("incorrect number of arguments for sendNotification");
             }
-            LuaValue notifT = luaState.get();
+            LuaValue notifT = state.get();
 
             if (notifT.type() != Lua.LuaType.TABLE) {
                 throw new LuaException("non-table value supplied to sendNotification");
@@ -49,54 +48,11 @@ public final class TanksLib implements LuaLib {
                 seconds = 5;
             }
 
-            if (seconds > 20) {
-                throw new LuaException("amount of seconds in notification cannot exceed 20");
-            }
-
             new Notification(Notification.NotificationType.INFO, seconds, text);
 
             return 0;
         });
         luaState.setTable(tanksLibStackIndex);
-
-        luaState.push("playSound");
-        luaState.push((ignored) -> {
-            int argnum = luaState.getTop();
-            if (argnum == 0 || argnum > 3) {
-                throw new LuaException("incorrect number of arguments for playSound");
-            }
-            float volume = 1f;
-            if (argnum == 3) {
-                LuaValue volumeLuaVal = luaState.get();
-                if (volumeLuaVal.type() != Lua.LuaType.NUMBER) {
-                    throw new LuaException("incorrect type for volume supplied to playSound");
-                }
-                //noinspection DataFlowIssue
-                volume = ((Double) volumeLuaVal.toJavaObject()).floatValue();
-            }
-
-            float pitch = 1f;
-            if (argnum >= 2) {
-                LuaValue pitchLuaVal = luaState.get();
-                if (pitchLuaVal.type() != Lua.LuaType.NUMBER) {
-                    throw new LuaException("incorrect type for pitch supplied to playSound");
-                }
-                //noinspection DataFlowIssue
-                pitch = ((Double)pitchLuaVal.toJavaObject()).floatValue();
-            }
-
-            LuaValue soundNameLuaVal = luaState.get();
-            if (soundNameLuaVal.type() != Lua.LuaType.STRING) {
-                throw new LuaException("incorrect type for sound name supplied to playSound");
-            }
-            String soundName = (String) soundNameLuaVal.toJavaObject();
-
-            Drawing.drawing.playSound(soundName, pitch, volume);
-
-            return 0;
-        });
-        luaState.setTable(tanksLibStackIndex);
-
 
         boolean isModApi;
         try {
@@ -112,7 +68,5 @@ public final class TanksLib implements LuaLib {
         luaState.setTable(tanksLibStackIndex);
 
         luaState.setGlobal("tanks");
-
-        // tanks library is finished, now it's time for java library enhancements
     }
 }
