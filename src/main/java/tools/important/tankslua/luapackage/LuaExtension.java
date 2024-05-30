@@ -240,7 +240,7 @@ public class LuaExtension extends LuaPackage {
     private void loadCallbacks(String code) {
         if (isDecoy) return;
 
-        LuaValue table = getAndVerifyTableFrom(code, CALLBACK_TYPES);
+        LuaValue table = getAndVerifyTableFrom(code, "extension:"+this.name, CALLBACK_TYPES);
 
         for (String callbackName : CALLBACK_TYPES.keySet()) {
             callbacks.put(callbackName, table.get(callbackName));

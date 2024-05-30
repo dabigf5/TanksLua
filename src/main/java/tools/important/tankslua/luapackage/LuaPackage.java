@@ -40,8 +40,8 @@ public abstract class LuaPackage {
         packSource = new DecoyPackSource();
     }
 
-    protected LuaValue getAndVerifyTableFrom(String code, HashMap<String, EntryType> types) {
-        SafeLuaRunner.LuaResult loadResult = SafeLuaRunner.safeLoadString(luaState, code);
+    protected LuaValue getAndVerifyTableFrom(String code, String chunkName, HashMap<String, EntryType> types) {
+        SafeLuaRunner.LuaResult loadResult = SafeLuaRunner.safeLoadString(luaState, code, chunkName);
 
         if (loadResult.status != Lua.LuaError.OK) {
             throw new LuaException("An error occurred while loading the file!");

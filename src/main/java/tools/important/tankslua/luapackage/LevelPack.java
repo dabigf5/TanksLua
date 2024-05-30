@@ -12,8 +12,10 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 
 public class LevelPack extends LuaPackage {
-    public LevelPack(File levelPackFile) throws LKVParseException, FileNotFoundException {
+    public final String levelName;
+    private LevelPack(File levelPackFile, String levelName) throws LKVParseException, FileNotFoundException {
         super(levelPackFile);
+        this.levelName = levelName;
 
         loadCallbacksFrom(packSource.readPlaintextFile("level.lua"));
 
@@ -35,7 +37,7 @@ public class LevelPack extends LuaPackage {
         File levelPackFile = matches[0];
 
         try {
-            return new LevelPack(levelPackFile);
+            return new LevelPack(levelPackFile, levelName);
         } catch (FileNotFoundException e) {
             return null;
         }
@@ -49,7 +51,7 @@ public class LevelPack extends LuaPackage {
         CALLBACK_TYPES.put("onUpdate", new EntryType(Lua.LuaType.FUNCTION, true));
     }
     private void loadCallbacksFrom(String code) {
-        LuaValue table = getAndVerifyTableFrom(code, CALLBACK_TYPES);
+        LuaValue table = getAndVerifyTableFrom(code, "levelpack:"+levelName, CALLBACK_TYPES);
 
         for (String callbackName : CALLBACK_TYPES.keySet()) {
             callbacks.put(callbackName, table.get(callbackName));

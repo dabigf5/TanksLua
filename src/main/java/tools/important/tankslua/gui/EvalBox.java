@@ -40,7 +40,7 @@ public class EvalBox {
 
         evalRunButton = new Button(screen.centerX - screen.objXSpace * 1.37, screen.objYSpace * 2, screen.objWidth, screen.objHeight, "Evaluate", () -> {
             String code = evalCodeBox.inputText;
-            SafeLuaRunner.LuaResult loadResult = SafeLuaRunner.safeLoadString(luaState, code);
+            SafeLuaRunner.LuaResult loadResult = SafeLuaRunner.safeLoadString(luaState, code, "evalbox");
             final double youFuckedUpSecondsPerCharacter = 0.1;
 
             if (loadResult.status != Lua.LuaError.OK) {

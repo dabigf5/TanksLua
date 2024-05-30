@@ -115,10 +115,10 @@ public final class SafeLuaRunner {
      * @param code The string you wish to load
      * @return That string loaded as a function, or null if the load failed
      */
-    public static LuaResult safeLoadString(Lua luaState, String code) {
+    public static LuaResult safeLoadString(Lua luaState, String code, String chunkName) {
         LuaValue[] loadResult;
 
-        loadResult = luaState.get("load").call(code, null);
+        loadResult = luaState.get("load").call(code, chunkName);
 
         LuaValue fLoadedString = loadResult[0];
         if (fLoadedString.type() == Lua.LuaType.NIL) {
