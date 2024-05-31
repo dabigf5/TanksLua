@@ -137,6 +137,7 @@ public class LuaExtension extends LuaPackage {
             if (!key.startsWith(OPTION_PREFIX)) continue;
 
             String optionName = key.substring(OPTION_PREFIX.length());
+            if (optionName.equals(ENABLED_KEY)) throw new ExtensionMetaParseException("Forbidden key 'ENABLED' present as option");
             LKVValue optionDefinition = entry.getValue();
 
             if (optionDefinition.type != LKVType.TYPE)
