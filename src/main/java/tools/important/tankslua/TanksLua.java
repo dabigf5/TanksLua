@@ -153,7 +153,7 @@ public final class TanksLua extends Extension {
             String luaFilePath = path+".lua";
 
             if (packSource.isFile(luaFilePath)) {
-                SafeLuaRunner.LuaResult result = SafeLuaRunner.safeLoadString(luaState, packSource.readPlaintextFile(luaFilePath), "extension:"+packSource.getPackName());
+                SafeLuaRunner.LuaResult result = SafeLuaRunner.safeLoadString(luaState, packSource.readPlaintextFile(luaFilePath), "searcher:"+packSource.getPackName());
                 if (result.status != Lua.LuaError.OK) {
                     throw new LuaException("Requested module ran into an error while loading");
                 }
@@ -178,7 +178,7 @@ public final class TanksLua extends Extension {
             initFilePath += "init.lua";
 
             if (packSource.isFile(initFilePath)) {
-                SafeLuaRunner.LuaResult result = SafeLuaRunner.safeLoadString(luaState, packSource.readPlaintextFile(initFilePath), "extension:"+packSource.getPackName());
+                SafeLuaRunner.LuaResult result = SafeLuaRunner.safeLoadString(luaState, packSource.readPlaintextFile(initFilePath), "searcher:"+packSource.getPackName());
                 if (result.status != Lua.LuaError.OK) {
                     throw new LuaException("Requested module ran into an error while loading");
                 }
