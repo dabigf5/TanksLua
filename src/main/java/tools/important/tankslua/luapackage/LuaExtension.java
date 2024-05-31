@@ -137,7 +137,8 @@ public class LuaExtension extends LuaPackage {
             if (!key.startsWith(OPTION_PREFIX)) continue;
 
             String optionName = key.substring(OPTION_PREFIX.length());
-            if (optionName.equals(ENABLED_KEY)) throw new ExtensionMetaParseException("Forbidden key 'ENABLED' present as option");
+            if (optionName.equals(ENABLED_KEY)) throw new ExtensionMetaParseException("Forbidden name 'ENABLED' used for option");
+
             LKVValue optionDefinition = entry.getValue();
 
             if (optionDefinition.type != LKVType.TYPE)
@@ -160,10 +161,15 @@ public class LuaExtension extends LuaPackage {
             if (optionDisplayNameLkv.type != LKVType.STRING)
                 throw new ExtensionMetaParseException("Option display name for \"" + optionName + "\" is of the wrong type");
 
+            String optionDisplayName = (String) optionDisplayNameLkv.value;
 
+            for (LuaExtensionOption option : options) {
+                if (option.displayName.equals(optionDisplayName))
+                    throw new ExtensionMetaParseException("Option display name for option "+optionName+" is identical to option "+option.name+"'s");
+            }
 
             LuaExtensionOption option = new LuaExtensionOption(
-                    (String) optionDisplayNameLkv.value,
+                    optionDisplayName,
                     optionName,
                     expectedOptionType,
                     defaultValueLkv.value
@@ -179,7 +185,12 @@ public class LuaExtension extends LuaPackage {
         if (this.isDecoy) return;
 
         File optionsLkvFile = getOptionsLkvFile();
-        if (!optionsLkvFile.exists()) return;
+        if (!optionsLkvFile.exists()) {
+            for (LuaExtensionOption option : options) {
+                option.value = option.defaultValue;
+            }
+            return;
+        }
 
         String optionsLkv = TanksLua.readContentsOfFile(optionsLkvFile);
 

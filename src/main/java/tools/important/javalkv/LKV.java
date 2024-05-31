@@ -45,6 +45,8 @@ public class LKV {
 
             //System.out.println("Type name: "+typeName+", Key name: "+keyName+", Raw value: "+rawValue);
 
+            if (pairs.get(keyName) != null) throw new LKVParseException("Duplicate entry");
+
             LKVValue convertedValue = convert(typeName, rawValue);
 
             pairs.put(keyName, convertedValue);
