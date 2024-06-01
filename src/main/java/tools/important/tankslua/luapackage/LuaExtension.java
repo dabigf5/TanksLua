@@ -39,6 +39,7 @@ public class LuaExtension extends LuaPackage {
         LuaValue fOnLoad = callbacks.get("onLoad");
         if (fOnLoad != null && fOnLoad.type() != Lua.LuaType.NIL) {
             TanksLua.tanksLua.runner.safeCall(fOnLoad);
+            onLoadCalled = true;
         }
         onNewOptions();
     }
@@ -232,6 +233,10 @@ public class LuaExtension extends LuaPackage {
     }
 
 
+
+
+    public boolean onLoadCalled;
+
     public Map<String, LuaValue> callbacks = new HashMap<>();
     private static final HashMap<String, EntryType> CALLBACK_TYPES = new HashMap<>();
 
@@ -243,7 +248,6 @@ public class LuaExtension extends LuaPackage {
         CALLBACK_TYPES.put("onLevelLoad", new EntryType(Lua.LuaType.FUNCTION, true));
         CALLBACK_TYPES.put("onNewOptions", new EntryType(Lua.LuaType.FUNCTION, true));
     }
-
     private void loadCallbacks(String code) {
         if (isDecoy) return;
 

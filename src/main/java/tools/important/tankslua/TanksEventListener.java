@@ -21,7 +21,7 @@ public class TanksEventListener {
         LevelPack currentLevelPack = TanksLua.tanksLua.currentLevelPack;
         if (currentLevelPack != null) {
             LuaValue fOnUpdate = currentLevelPack.callbacks.get("onUpdate");
-            if (fOnUpdate == null || fOnUpdate.type() != Lua.LuaType.NIL) TanksLua.tanksLua.runner.safeCall(fOnUpdate);
+            if (fOnUpdate != null && fOnUpdate.type() != Lua.LuaType.NIL) TanksLua.tanksLua.runner.safeCall(fOnUpdate);
         }
 
         lastScreen = Game.screen;
@@ -38,7 +38,7 @@ public class TanksEventListener {
         LevelPack currentLevelScript = TanksLua.tanksLua.currentLevelPack;
         if (currentLevelScript != null) {
             LuaValue fOnDraw = currentLevelScript.callbacks.get("onDraw");
-            if (fOnDraw == null || fOnDraw.type() != Lua.LuaType.NIL) TanksLua.tanksLua.runner.safeCall(fOnDraw);
+            if (fOnDraw != null && fOnDraw.type() != Lua.LuaType.NIL) TanksLua.tanksLua.runner.safeCall(fOnDraw);
         }
 
         for (LuaExtension luaext: TanksLua.tanksLua.loadedLuaExtensions) {
@@ -49,19 +49,29 @@ public class TanksEventListener {
         }
     }
 
+    private void postExtensionOptionsClose(ScreenOptionsLuaInspectExtension oldScreen) {
+        LuaExtension inspectedExtension = oldScreen.extension;
+        inspectedExtension.saveOptions();
+
+        if (!inspectedExtension.enabled) return;
+
+        inspectedExtension.loadCallbacksIfNone();
+        inspectedExtension.onNewOptions();
+
+        LuaValue fOnLoad = inspectedExtension.callbacks.get("onLoad");
+
+        if (fOnLoad == null || fOnLoad.type() == Lua.LuaType.NIL) return;
+        if (inspectedExtension.onLoadCalled) return;
+
+        inspectedExtension.onLoadCalled = true;
+        TanksLua.tanksLua.runner.safeCall(fOnLoad);
+    }
+
+
     private void onScreenChanged(Screen oldScreen, Screen newScreen) {
         if (oldScreen instanceof ScreenOptionsLuaInspectExtension) {
-            ScreenOptionsLuaInspectExtension inspectionScreen = (ScreenOptionsLuaInspectExtension) oldScreen;
-            LuaExtension inspectedExtension = inspectionScreen.extension;
-            inspectedExtension.saveOptions();
-
-            if (inspectedExtension.enabled) {
-                inspectedExtension.loadCallbacksIfNone();
-                inspectedExtension.onNewOptions();
-            }
+            postExtensionOptionsClose((ScreenOptionsLuaInspectExtension) oldScreen);
         }
-
-
 
         if (newScreen instanceof ScreenGame) {
             onLevelLoaded((ScreenGame) newScreen);
