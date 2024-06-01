@@ -68,13 +68,13 @@ public abstract class LuaPackage {
     }
 
     protected LuaValue getAndVerifyTableFrom(String code, String chunkName, HashMap<String, EntryType> types) {
-        SafeLuaRunner.LuaResult loadResult = SafeLuaRunner.safeLoadString(luaState, code, chunkName);
+        SafeLuaRunner.LuaResult loadResult = TanksLua.tanksLua.runner.safeLoadString(luaState, code, chunkName);
 
         if (loadResult.status != Lua.LuaError.OK) {
             throw new LuaException("An error occurred while loading the file!");
         }
 
-        SafeLuaRunner.LuaResult runResult = SafeLuaRunner.safeCall(loadResult.returns[0]);
+        SafeLuaRunner.LuaResult runResult = TanksLua.tanksLua.runner.safeCall(loadResult.returns[0]);
 
         if (runResult.status != Lua.LuaError.OK) {
             throw new LuaException("An error occurred while running the file!");

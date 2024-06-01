@@ -38,7 +38,7 @@ public class LuaExtension extends LuaPackage {
 
         LuaValue fOnLoad = callbacks.get("onLoad");
         if (fOnLoad != null && fOnLoad.type() != Lua.LuaType.NIL) {
-            SafeLuaRunner.safeCall(fOnLoad);
+            TanksLua.tanksLua.runner.safeCall(fOnLoad);
         }
         onNewOptions();
     }
@@ -243,7 +243,7 @@ public class LuaExtension extends LuaPackage {
     public void onNewOptions() {
         LuaValue fOnNewOptions = callbacks.get("onNewOptions");
         if (fOnNewOptions != null && fOnNewOptions.type() != Lua.LuaType.NIL) {
-            SafeLuaRunner.safeCall(fOnNewOptions, getOptionsLuaTable(luaState));
+            TanksLua.tanksLua.runner.safeCall(fOnNewOptions, getOptionsLuaTable(luaState));
         }
     }
 

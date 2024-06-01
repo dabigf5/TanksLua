@@ -38,9 +38,11 @@ public class EvalBox {
 
         evalCodeBox.maxChars = 1000; // who's gonna write lua code longer than 1000 characters
 
+        SafeLuaRunner runner = TanksLua.tanksLua.runner;
+
         evalRunButton = new Button(screen.centerX - screen.objXSpace * 1.37, screen.objYSpace * 2, screen.objWidth, screen.objHeight, "Evaluate", () -> {
             String code = evalCodeBox.inputText;
-            SafeLuaRunner.LuaResult loadResult = SafeLuaRunner.safeLoadString(luaState, code, "evalbox");
+            SafeLuaRunner.LuaResult loadResult = runner.safeLoadString(luaState, code, "evalbox");
             final double youFuckedUpSecondsPerCharacter = 0.1;
 
             if (loadResult.status != Lua.LuaError.OK) {
@@ -49,7 +51,7 @@ public class EvalBox {
                 return;
             }
 
-            SafeLuaRunner.LuaResult callResult = SafeLuaRunner.safeCall(loadResult.returns[0]);
+            SafeLuaRunner.LuaResult callResult = runner.safeCall(loadResult.returns[0]);
 
             if (callResult.status != Lua.LuaError.OK) {
                 String error = callResult.errorMessage;

@@ -21,7 +21,7 @@ public class TanksEventListener {
         LevelPack currentLevelPack = TanksLua.tanksLua.currentLevelPack;
         if (currentLevelPack != null) {
             LuaValue fOnUpdate = currentLevelPack.callbacks.get("onUpdate");
-            if (fOnUpdate == null || fOnUpdate.type() != Lua.LuaType.NIL) SafeLuaRunner.safeCall(fOnUpdate);
+            if (fOnUpdate == null || fOnUpdate.type() != Lua.LuaType.NIL) TanksLua.tanksLua.runner.safeCall(fOnUpdate);
         }
 
         lastScreen = Game.screen;
@@ -30,7 +30,7 @@ public class TanksEventListener {
             if (!luaext.enabled) continue;
             LuaValue fOnUpdate = luaext.callbacks.get("onUpdate");
             if (fOnUpdate == null || fOnUpdate.type() == Lua.LuaType.NIL) continue;
-            SafeLuaRunner.safeCall(fOnUpdate);
+            TanksLua.tanksLua.runner.safeCall(fOnUpdate);
         }
     }
 
@@ -38,14 +38,14 @@ public class TanksEventListener {
         LevelPack currentLevelScript = TanksLua.tanksLua.currentLevelPack;
         if (currentLevelScript != null) {
             LuaValue fOnDraw = currentLevelScript.callbacks.get("onDraw");
-            if (fOnDraw == null || fOnDraw.type() != Lua.LuaType.NIL) SafeLuaRunner.safeCall(fOnDraw);
+            if (fOnDraw == null || fOnDraw.type() != Lua.LuaType.NIL) TanksLua.tanksLua.runner.safeCall(fOnDraw);
         }
 
         for (LuaExtension luaext: TanksLua.tanksLua.loadedLuaExtensions) {
             if (!luaext.enabled) continue;
             LuaValue fOnDraw = luaext.callbacks.get("onDraw");
             if (fOnDraw == null || fOnDraw.type() == Lua.LuaType.NIL) continue;
-            SafeLuaRunner.safeCall(fOnDraw);
+            TanksLua.tanksLua.runner.safeCall(fOnDraw);
         }
     }
 
@@ -90,7 +90,7 @@ public class TanksEventListener {
             LuaValue fOnLevelLoad = luaext.callbacks.getOrDefault("onLevelLoad", TanksLua.tanksLua.internalLuaState.fromNull());
             if (fOnLevelLoad == null || fOnLevelLoad.type() == Lua.LuaType.NIL) continue;
 
-            SafeLuaRunner.safeCall(fOnLevelLoad, levelName);
+            TanksLua.tanksLua.runner.safeCall(fOnLevelLoad, levelName);
         }
     }
 }

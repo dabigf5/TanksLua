@@ -24,7 +24,7 @@ public class LevelPack extends LuaPackage {
         LuaValue fOnLoad = callbacks.get("onLoad");
         if (fOnLoad.type() == Lua.LuaType.NIL) return;
 
-        SafeLuaRunner.safeCall(fOnLoad);
+        TanksLua.tanksLua.runner.safeCall(fOnLoad);
     }
     public static LevelPack fromLevelName(String levelName) {
         if (levelName == null) return null;

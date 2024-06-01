@@ -48,6 +48,7 @@ public final class TanksLua extends Extension {
      */
     public Lua internalLuaState;
 
+    public SafeLuaRunner runner = new SafeLuaRunner();
 
     public LevelPack currentLevelPack;
     public LuaCompatibleArrayList<LuaExtension> loadedLuaExtensions;
@@ -71,8 +72,6 @@ public final class TanksLua extends Extension {
 
         makeEmptyFile(FULL_SCRIPT_PATH + "/lua-options.lkv");
     }
-
-
 
     private static void makeEmptyDirectory(String path) {
         File dir = new File(path);
@@ -104,6 +103,9 @@ public final class TanksLua extends Extension {
 //            throw new RuntimeException("Unable to create file " + path);
 //        }
 //    }
+
+
+
 
     private static final LuaLib[] defaultLibraries = {
             new TanksLib(),
@@ -153,7 +155,7 @@ public final class TanksLua extends Extension {
             String luaFilePath = path+".lua";
 
             if (packSource.isFile(luaFilePath)) {
-                SafeLuaRunner.LuaResult result = SafeLuaRunner.safeLoadString(luaState, packSource.readPlaintextFile(luaFilePath), "searcher:"+packSource.getPackName());
+                SafeLuaRunner.LuaResult result = tanksLua.runner.safeLoadString(luaState, packSource.readPlaintextFile(luaFilePath), "searcher:"+packSource.getPackName());
                 if (result.status != Lua.LuaError.OK) {
                     throw new LuaException("Requested module ran into an error while loading");
                 }
@@ -178,7 +180,7 @@ public final class TanksLua extends Extension {
             initFilePath += "init.lua";
 
             if (packSource.isFile(initFilePath)) {
-                SafeLuaRunner.LuaResult result = SafeLuaRunner.safeLoadString(luaState, packSource.readPlaintextFile(initFilePath), "searcher:"+packSource.getPackName());
+                SafeLuaRunner.LuaResult result = tanksLua.runner.safeLoadString(luaState, packSource.readPlaintextFile(initFilePath), "searcher:"+packSource.getPackName());
                 if (result.status != Lua.LuaError.OK) {
                     throw new LuaException("Requested module ran into an error while loading");
                 }
@@ -259,74 +261,27 @@ public final class TanksLua extends Extension {
 
     }
 
-    public static class TanksLuaOption {
-        public String name;
-        public LKVType type;
-        public Object value;
-        public Object defaultValue;
-        private TanksLuaOption(String name, LKVType type, Object defaultValue) {
-            this.name = name;
-            this.type = type;
-            this.defaultValue = defaultValue;
-        }
-    }
+    @Override
+    public void update() {
+        eventListener.onUpdate();
 
-    private static final File OPTIONS_FILE = new File(FULL_SCRIPT_PATH + "/lua-options.lkv");
-    private final List<TanksLuaOption> options = new ArrayList<>();{
-        options.add(new TanksLuaOption("enableLevelScripts", LKVType.BOOLEAN, false));
-        options.add(new TanksLuaOption("enableEvalBox", LKVType.BOOLEAN, false));
-    }
-    public Object getOptionValue(String name) {
-        for (TanksLuaOption option : options) {
-            if (option.name.equals(name)) return option.value;
-        }
-        throw new RuntimeException("No option exists called \""+name+"\"");
-    }
-    public void setOptionValue(String name, Object newValue) {
-        for (TanksLuaOption option : options) {
-            if (!option.name.equals(name)) continue;
-
-            option.value = newValue;
-            return;
+        if (Game.screen instanceof ScreenOptions) {
+            enterLuaOptionsButton.update();
         }
 
-        throw new RuntimeException("No option exists called \""+name+"\"");
-    }
+        if ((boolean) getOptionValue("enableEvalBox")) {
+            evalBox.update();
+        }
+        for (int i = 0; i < activeNotifications.size(); i++) {
+            Notification notif = activeNotifications.get(i);
 
-    public void loadOptions() throws LKVParseException {
-        Map<String, LKVValue> pairs = LKV.parse(readContentsOfFile(OPTIONS_FILE));
-
-        for (TanksLuaOption option : options) {
-            LKVValue optionValueLkv = pairs.get(option.name);
-
-            if (optionValueLkv == null) {
-                option.value = option.defaultValue;
-                continue;
+            notif.update();
+            if (notif.removing) {
+                activeNotifications.remove(i);
+                i--;
             }
-
-            if (optionValueLkv.type != option.type) throw new LKVParseException("Option \""+option.name+"\" is of wrong type!");
-
-            option.value = optionValueLkv.value;
         }
     }
-
-    public void saveOptions() {
-        StringBuilder optionsBuilder = new StringBuilder();
-
-        for (TanksLuaOption option : options) {
-            optionsBuilder
-                    .append(option.type.typeName)
-                    .append(' ')
-                    .append(option.name)
-                    .append(" = ")
-                    .append(option.value.toString())
-                    .append('\n');
-        }
-
-//        System.out.println(optionsBuilder);
-        replaceContentsOfFile(OPTIONS_FILE, optionsBuilder.toString());
-    }
-
     @Override
     public void draw() {
         if (Drawing.drawing.enableStats) {
@@ -361,27 +316,63 @@ public final class TanksLua extends Extension {
         if (drawExtraMouseTarget) Panel.panel.drawMouseTarget();
     }
 
-    @Override
-    public void update() {
-        eventListener.onUpdate();
 
-        if (Game.screen instanceof ScreenOptions) {
-            enterLuaOptionsButton.update();
+
+
+    private static final File OPTIONS_FILE = new File(FULL_SCRIPT_PATH + "/lua-options.lkv");
+    private final List<Option> options = new ArrayList<>();{
+        options.add(new Option("enableLevelScripts", LKVType.BOOLEAN, false));
+        options.add(new Option("enableEvalBox", LKVType.BOOLEAN, false));
+    }
+    public Object getOptionValue(String name) {
+        for (Option option : options) {
+            if (option.name.equals(name)) return option.value;
+        }
+        throw new RuntimeException("No option exists called \""+name+"\"");
+    }
+    public void setOptionValue(String name, Object newValue) {
+        for (Option option : options) {
+            if (!option.name.equals(name)) continue;
+
+            option.value = newValue;
+            return;
         }
 
-        if ((boolean) getOptionValue("enableEvalBox")) {
-            evalBox.update();
-        }
-        for (int i = 0; i < activeNotifications.size(); i++) {
-            Notification notif = activeNotifications.get(i);
+        throw new RuntimeException("No option exists called \""+name+"\"");
+    }
+    public void loadOptions() throws LKVParseException {
+        Map<String, LKVValue> pairs = LKV.parse(readContentsOfFile(OPTIONS_FILE));
 
-            notif.update();
-            if (notif.removing) {
-                activeNotifications.remove(i);
-                i--;
+        for (Option option : options) {
+            LKVValue optionValueLkv = pairs.get(option.name);
+
+            if (optionValueLkv == null) {
+                option.value = option.defaultValue;
+                continue;
             }
+
+            if (optionValueLkv.type != option.type) throw new LKVParseException("Option \""+option.name+"\" is of wrong type!");
+
+            option.value = optionValueLkv.value;
         }
     }
+    public void saveOptions() {
+        StringBuilder optionsBuilder = new StringBuilder();
+
+        for (Option option : options) {
+            optionsBuilder
+                    .append(option.type.typeName)
+                    .append(' ')
+                    .append(option.name)
+                    .append(" = ")
+                    .append(option.value.toString())
+                    .append('\n');
+        }
+
+        replaceContentsOfFile(OPTIONS_FILE, optionsBuilder.toString());
+    }
+
+
 
     public static void main(String[] args) {
         Tanks.launchWithExtensions(args, new Extension[]{new TanksLua()}, new int[]{});
