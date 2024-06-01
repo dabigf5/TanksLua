@@ -321,8 +321,8 @@ public final class TanksLua extends Extension {
 
     private static final File OPTIONS_FILE = new File(FULL_SCRIPT_PATH + "/lua-options.lkv");
     private final List<Option> options = new ArrayList<>();{
-        options.add(new Option("enableLevelScripts", LKVType.BOOLEAN, false));
-        options.add(new Option("enableEvalBox", LKVType.BOOLEAN, false));
+        options.add(new Option("enableLevelScripts", null, LKVType.BOOLEAN, false));
+        options.add(new Option("enableEvalBox", null, LKVType.BOOLEAN, false));
     }
     public Object getOptionValue(String name) {
         for (Option option : options) {

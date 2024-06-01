@@ -5,6 +5,7 @@ import tanks.Game;
 import tanks.gui.Button;
 import tanks.gui.screen.Screen;
 import tools.important.javalkv.LKVType;
+import tools.important.tankslua.Option;
 import tools.important.tankslua.gui.ToggleButton;
 import tools.important.tankslua.gui.extensionoption.Checkbox;
 import tools.important.tankslua.gui.extensionoption.ExtensionOptionElement;
@@ -37,7 +38,7 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
 
         double yPositionMultiplier = 3;
 
-        for (LuaExtension.LuaExtensionOption option : extension.options) {
+        for (Option option : extension.options) {
             double thisEntryY = optionsTextY+(objHeight*yPositionMultiplier);
 
             LKVType lkvType = option.type;

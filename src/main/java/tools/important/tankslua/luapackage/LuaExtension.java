@@ -5,7 +5,7 @@ import party.iroiro.luajava.LuaException;
 import party.iroiro.luajava.value.LuaValue;
 import tools.important.javalkv.*;
 import tools.important.tankslua.Notification;
-import tools.important.tankslua.SafeLuaRunner;
+import tools.important.tankslua.Option;
 import tools.important.tankslua.TanksLua;
 import tools.important.tankslua.luapackage.verification.EntryType;
 
@@ -85,22 +85,6 @@ public class LuaExtension extends LuaPackage {
 
     public boolean enabled;
 
-
-    public static class LuaExtensionOption {
-        public String displayName;
-        public final String name;
-        public final LKVType type;
-        private final Object defaultValue;
-        public Object value;
-
-        public LuaExtensionOption(String displayName, String name, LKVType type, Object defaultValue) {
-            this.displayName = displayName;
-            this.name = name;
-            this.type = type;
-            this.defaultValue = defaultValue;
-        }
-    }
-
     public static class ExtensionOptionParseException extends RuntimeException {
         private ExtensionOptionParseException(String message) {
             super(message);
@@ -113,13 +97,13 @@ public class LuaExtension extends LuaPackage {
         }
     }
 
-    public final List<LuaExtensionOption> options = new ArrayList<>();
+    public final List<Option> options = new ArrayList<>();
 
     public LuaValue getOptionsLuaTable(Lua luaState) {
         luaState.createTable(0, options.size());
         int extensionTableStackIndex = luaState.getTop();
 
-        for (LuaExtensionOption option : options) {
+        for (Option option : options) {
             luaState.push(option.name);
             luaState.push(option.value, Lua.Conversion.SEMI);
             luaState.setTable(extensionTableStackIndex);
@@ -163,14 +147,14 @@ public class LuaExtension extends LuaPackage {
 
             String optionDisplayName = (String) optionDisplayNameLkv.value;
 
-            for (LuaExtensionOption option : options) {
+            for (Option option : options) {
                 if (option.displayName.equals(optionDisplayName))
                     throw new ExtensionMetaParseException("Option display name for option "+optionName+" is identical to option "+option.name+"'s");
             }
 
-            LuaExtensionOption option = new LuaExtensionOption(
-                    optionDisplayName,
+            Option option = new Option(
                     optionName,
+                    optionDisplayName,
                     expectedOptionType,
                     defaultValueLkv.value
             );
@@ -186,7 +170,7 @@ public class LuaExtension extends LuaPackage {
 
         File optionsLkvFile = getOptionsLkvFile();
         if (!optionsLkvFile.exists()) {
-            for (LuaExtensionOption option : options) {
+            for (Option option : options) {
                 option.value = option.defaultValue;
             }
             return;
@@ -204,7 +188,7 @@ public class LuaExtension extends LuaPackage {
 
         this.enabled = (boolean) enabledValue.value;
 
-        for (LuaExtensionOption option : options) {
+        for (Option option : options) {
             LKVValue value = pairs.get(option.name);
 
             if (value == null) {
@@ -226,7 +210,7 @@ public class LuaExtension extends LuaPackage {
 
         StringBuilder optionsFileBuilder = new StringBuilder("boolean ENABLED = ").append(enabled).append("\n\n");
 
-        for (LuaExtensionOption option : options) {
+        for (Option option : options) {
             String optionName = option.name;
             Object optionValue = option.value;
 
