@@ -19,10 +19,14 @@ public class LevelPack extends LuaPackage {
 
         this.levelName = levelName;
 
-        loadCallbacksFrom(packSource.readPlaintextFile("level.lua"));
+        String levelCode = packSource.readPlaintextFile("level.lua");
+
+        if (levelCode != null) {
+            loadCallbacksFrom(levelCode);
+        }
 
         LuaValue fOnLoad = callbacks.get("onLoad");
-        if (fOnLoad.type() == Lua.LuaType.NIL) return;
+        if (fOnLoad == null || fOnLoad.type() == Lua.LuaType.NIL) return;
 
         TanksLua.tanksLua.runner.safeCall(fOnLoad);
     }
