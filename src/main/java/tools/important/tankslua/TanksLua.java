@@ -33,7 +33,7 @@ public final class TanksLua extends Extension {
      * The one and only instance of TanksLua.
      */
     public static TanksLua tanksLua;
-    public static final String VERSION = "TanksLua Alpha 0.3.0 (Bleeding Edge)";
+    public static final String VERSION = "TanksLua Alpha 0.3.0";
 
 
 
