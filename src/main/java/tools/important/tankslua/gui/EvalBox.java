@@ -29,8 +29,16 @@ public class EvalBox {
         luaState.openLibraries();
         TanksLua.initializeState(luaState);
 
-        evalCodeBox = new TextBox(screen.centerX, screen.objYSpace, screen.objWidth * 4, screen.objHeight, "Lua Code", () -> {
-        }, "");
+        evalCodeBox = new TextBox(
+                screen.centerX,
+                screen.objYSpace,
+
+                screen.objWidth * 4,
+                screen.objHeight,
+
+                "Lua Code", () -> {},
+                ""
+        );
         evalCodeBox.allowLetters = true;
         evalCodeBox.allowSpaces = true;
         evalCodeBox.enableCaps = true;
@@ -40,7 +48,14 @@ public class EvalBox {
 
         SafeLuaRunner runner = TanksLua.tanksLua.runner;
 
-        evalRunButton = new Button(screen.centerX - screen.objXSpace * 1.37, screen.objYSpace * 2, screen.objWidth, screen.objHeight, "Evaluate", () -> {
+        evalRunButton = new Button(
+                screen.centerX - screen.objXSpace * 1.37,
+                screen.objYSpace * 2,
+                screen.objWidth,
+                screen.objHeight,
+
+                "Evaluate",
+                () -> {
             String code = evalCodeBox.inputText;
             SafeLuaRunner.LuaResult loadResult = runner.safeLoadString(luaState, code, "evalbox");
             final double youFuckedUpSecondsPerCharacter = 0.1;
