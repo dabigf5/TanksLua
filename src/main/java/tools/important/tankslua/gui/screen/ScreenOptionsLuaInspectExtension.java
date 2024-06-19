@@ -5,10 +5,12 @@ import tanks.Game;
 import tanks.gui.Button;
 import tanks.gui.screen.Screen;
 import tools.important.javalkv.LKVType;
+import tools.important.tankslua.Notification;
 import tools.important.tankslua.Option;
 import tools.important.tankslua.gui.ToggleButton;
 import tools.important.tankslua.gui.extensionoption.Checkbox;
 import tools.important.tankslua.gui.extensionoption.ExtensionOptionElement;
+import tools.important.tankslua.gui.extensionoption.TextField;
 import tools.important.tankslua.luapackage.LuaExtension;
 
 import java.util.HashMap;
@@ -18,6 +20,7 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
     private static final HashMap<LKVType, Class<? extends ExtensionOptionElement>> ELEMENT_TYPES = new HashMap<>();
     static {
         ELEMENT_TYPES.put(LKVType.BOOLEAN, Checkbox.class);
+        ELEMENT_TYPES.put(LKVType.STRING, TextField.class);
     }
     private final HashMap<String, ExtensionOptionElement> optionElements = new HashMap<>();
 
@@ -43,6 +46,11 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
 
             LKVType lkvType = option.type;
             Class<? extends ExtensionOptionElement> uiElementClassForOption = ELEMENT_TYPES.get(lkvType);
+
+            if (uiElementClassForOption == null) {
+                new Notification(Notification.NotificationType.WARN, 5, lkvType.typeName+" is not usable as an option type!");
+                return;
+            }
 
             ExtensionOptionElement newExtensionOptionElement;
 

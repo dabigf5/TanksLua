@@ -15,7 +15,7 @@ import java.util.*;
 
 public class LuaExtension extends LuaPackage {
     private LuaExtension(File extensionFile)
-            throws LKVParseException, ExtensionMetaParseException, ExtensionOptionParseException, FileNotFoundException {
+            throws ExtensionMetaParseException, ExtensionOptionParseException, FileNotFoundException {
         super(extensionFile);
         TanksLua.tanksLua.initializeStateSearchers(luaState, packSource);
 
@@ -50,7 +50,13 @@ public class LuaExtension extends LuaPackage {
     public SemanticVersion version;
 
     private void loadMeta(String content) {
-        HashMap<String, LKVValue> pairs = LKV.parse(content);
+        HashMap<String, LKVValue> pairs;
+
+        try {
+            pairs = LKV.parse(content);
+        } catch (LKVParseException e) {
+            throw new ExtensionMetaParseException(e);
+        }
 
         // maybe change this if there's a lot of metadata
 
@@ -90,11 +96,17 @@ public class LuaExtension extends LuaPackage {
         private ExtensionOptionParseException(String message) {
             super(message);
         }
+        private ExtensionOptionParseException(Throwable t) {
+            super(t);
+        }
     }
 
     public static class ExtensionMetaParseException extends RuntimeException {
         private ExtensionMetaParseException(String message) {
             super(message);
+        }
+        private ExtensionMetaParseException(Throwable t) {
+            super(t);
         }
     }
 
@@ -179,13 +191,20 @@ public class LuaExtension extends LuaPackage {
 
         String optionsLkv = TanksLua.readContentsOfFile(optionsLkvFile);
 
-        Map<String, LKVValue> pairs = LKV.parse(optionsLkv);
+
+        Map<String, LKVValue> pairs;
+
+        try {
+            pairs = LKV.parse(optionsLkv);
+        } catch (LKVParseException e) {
+            throw new ExtensionOptionParseException(e);
+        }
 
         LKVValue enabledValue = pairs.get(ENABLED_KEY);
 
         if (enabledValue == null) throw new ExtensionOptionParseException("Missing enabled value in options");
         if (enabledValue.type != LKVType.BOOLEAN)
-            throw new ExtensionOptionParseException("enabled value in options has wrong type");
+            throw new ExtensionOptionParseException("Enabled value in options has wrong type");
 
         this.enabled = (boolean) enabledValue.value;
 
@@ -287,19 +306,21 @@ public class LuaExtension extends LuaPackage {
         for (File file : extensionFiles) {
             try {
                 extensionList.add(new LuaExtension(file));
-            } catch (LKVParseException e) {
-                new Notification(Notification.NotificationType.WARN, 5, "Extension " + file.getName() + " has invalidly formatted metadata! See log for details");
-                e.printStackTrace();
             } catch (ExtensionMetaParseException e) {
                 new Notification(Notification.NotificationType.WARN, 5, "Extension " + file.getName() + " has invalid metadata! See log for details");
                 e.printStackTrace();
             } catch (ExtensionOptionParseException e) {
-                new Notification(Notification.NotificationType.WARN, 5, "TanksLua ran into a problem parsing " + file.getName() + "'s options! See log for details");
+                new Notification(Notification.NotificationType.WARN, 5, "TanksLua ran into a problem loading " + file.getName() + "'s options! See log for details");
                 e.printStackTrace();
             } catch (FileNotFoundException e) {
                 new Notification(Notification.NotificationType.WARN, 5, e.getMessage());
                 e.printStackTrace();
             }
+            // this shouldn't be thrown by the constructor
+//            catch (LKVParseException e) {
+//                new Notification(Notification.NotificationType.WARN, 5, "Extension " + file.getName() + " has invalidly formatted metadata! See log for details");
+//                e.printStackTrace();
+//            }
         }
     }
 
