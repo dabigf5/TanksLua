@@ -15,7 +15,7 @@ public class LevelPack extends LuaPackage {
     public final String levelName;
     private LevelPack(File levelPackFile, String levelName) throws LKVParseException, FileNotFoundException {
         super(levelPackFile);
-        TanksLua.initializeStateSearchers(luaState, packSource);
+        TanksLua.tanksLua.initializeStateSearchers(luaState, packSource);
 
         this.levelName = levelName;
 

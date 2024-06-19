@@ -17,7 +17,7 @@ public class LuaExtension extends LuaPackage {
     private LuaExtension(File extensionFile)
             throws LKVParseException, ExtensionMetaParseException, ExtensionOptionParseException, FileNotFoundException {
         super(extensionFile);
-        TanksLua.initializeStateSearchers(luaState, packSource);
+        TanksLua.tanksLua.initializeStateSearchers(luaState, packSource);
 
         String extensionMeta = packSource.readPlaintextFile("extension-meta.lkv");
         if (extensionMeta == null) {
