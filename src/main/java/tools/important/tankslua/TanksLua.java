@@ -244,7 +244,11 @@ public final class TanksLua extends Extension {
 
         evalBox = new EvalBox();
 
-        loadOptions();
+        try {
+            loadOptions();
+        } catch (LKVParseException e) {
+            throw new RuntimeException(e);
+        }
 
         LuaExtension.loadExtensionsTo(loadedLuaExtensions);
 
@@ -365,7 +369,7 @@ public final class TanksLua extends Extension {
                     .append(' ')
                     .append(option.name)
                     .append(" = ")
-                    .append(option.value.toString())
+                    .append(LKV.encode(option.value, option.type))
                     .append('\n');
         }
 

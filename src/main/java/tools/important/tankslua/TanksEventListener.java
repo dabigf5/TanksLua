@@ -7,6 +7,7 @@ import party.iroiro.luajava.value.LuaValue;
 import tanks.Game;
 import tanks.gui.screen.Screen;
 import tanks.gui.screen.ScreenGame;
+import tools.important.javalkv.LKVParseException;
 import tools.important.tankslua.gui.screen.ScreenOptionsLuaInspectExtension;
 import tools.important.tankslua.luapackage.LevelPack;
 import tools.important.tankslua.luapackage.LuaExtension;
@@ -90,8 +91,8 @@ public class TanksEventListener {
         if (levelScriptsEnabled) {
             try {
                 TanksLua.tanksLua.currentLevelPack = LevelPack.fromLevelName(levelName);
-            } catch (LuaException luaException) {
-                new Notification(Notification.NotificationType.WARN, 5, luaException.getMessage());
+            } catch (LuaException | LKVParseException e) {
+                new Notification(Notification.NotificationType.WARN, 5, e.getMessage());
             }
         }
 

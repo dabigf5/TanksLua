@@ -8,21 +8,21 @@ import tools.important.javalkv.LKVType;
 import tools.important.tankslua.Notification;
 import tools.important.tankslua.Option;
 import tools.important.tankslua.gui.ToggleButton;
-import tools.important.tankslua.gui.extensionoption.Checkbox;
-import tools.important.tankslua.gui.extensionoption.ExtensionOptionElement;
-import tools.important.tankslua.gui.extensionoption.TextField;
+import tools.important.tankslua.gui.extensionoption.LXOEToggleButton;
+import tools.important.tankslua.gui.extensionoption.LuaExtensionOptionElement;
 import tools.important.tankslua.luapackage.LuaExtension;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ScreenOptionsLuaInspectExtension extends Screen {
-    private static final HashMap<LKVType, Class<? extends ExtensionOptionElement>> ELEMENT_TYPES = new HashMap<>();
+    private static final HashMap<LKVType, Class<? extends LuaExtensionOptionElement>> ELEMENT_TYPES = new HashMap<>();
     static {
-        ELEMENT_TYPES.put(LKVType.BOOLEAN, Checkbox.class);
-        ELEMENT_TYPES.put(LKVType.STRING, TextField.class);
+        ELEMENT_TYPES.put(LKVType.BOOLEAN, LXOEToggleButton.class);
     }
-    private final HashMap<String, ExtensionOptionElement> optionElements = new HashMap<>();
+    private final HashMap<String, LuaExtensionOptionElement> optionElements = new HashMap<>();
 
 
     public final LuaExtension extension;
@@ -45,26 +45,25 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
             double thisEntryY = optionsTextY+(objHeight*yPositionMultiplier);
 
             LKVType lkvType = option.type;
-            Class<? extends ExtensionOptionElement> uiElementClassForOption = ELEMENT_TYPES.get(lkvType);
+            Class<? extends LuaExtensionOptionElement> uiElementClassForOption = ELEMENT_TYPES.get(lkvType);
 
             if (uiElementClassForOption == null) {
                 new Notification(Notification.NotificationType.WARN, 5, lkvType.typeName+" is not usable as an option type!");
                 return;
             }
 
-            ExtensionOptionElement newExtensionOptionElement;
+            LuaExtensionOptionElement newExtensionOptionElement;
 
             try {
-                newExtensionOptionElement = uiElementClassForOption.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
+                Constructor<? extends LuaExtensionOptionElement> constructor = uiElementClassForOption.getConstructor(
+
+                );
+                newExtensionOptionElement = constructor.newInstance();
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
 
             optionElements.put(option.displayName, newExtensionOptionElement);
-            newExtensionOptionElement.setPosition(optionsTextX, thisEntryY);
-            newExtensionOptionElement.setInitialState(option.value);
-
-            newExtensionOptionElement.setOnValueChanged((Object newValue) -> option.value = newValue);
 
             yPositionMultiplier += 1;
         }
@@ -88,7 +87,7 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
     public void update() {
         backButton.update();
         toggleEnabled.update();
-        for (ExtensionOptionElement e: optionElements.values()) {
+        for (LuaExtensionOptionElement e: optionElements.values()) {
             e.update();
         }
     }
@@ -121,18 +120,10 @@ public class ScreenOptionsLuaInspectExtension extends Screen {
         Drawing.drawing.drawText(optionsTextX, optionsTextY, "Options");
         Drawing.drawing.setFontSize(titleSize*0.7);
 
-        for (Map.Entry<String, ExtensionOptionElement> entry: optionElements.entrySet()) {
+        for (Map.Entry<String, LuaExtensionOptionElement> entry: optionElements.entrySet()) {
             Drawing.drawing.setInterfaceFontSize(titleSize);
-            String textDrawn = entry.getKey()+":";
 
-            ExtensionOptionElement ui = entry.getValue();
-
-            Drawing.drawing.drawText(
-                    ui.getPosX(),
-                    ui.getPosY()-ui.getHeight(),
-                    textDrawn
-            );
-
+            LuaExtensionOptionElement ui = entry.getValue();
 
             ui.draw();
         }

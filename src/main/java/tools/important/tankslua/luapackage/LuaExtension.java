@@ -236,7 +236,13 @@ public class LuaExtension extends LuaPackage {
 
             LKVType optionType = option.type;
 
-            optionsFileBuilder.append(optionType.typeName).append(" ").append(optionName).append(" = ").append(optionValue.toString()).append("\n");
+            optionsFileBuilder
+                    .append(optionType.typeName)
+                    .append(" ")
+                    .append(optionName)
+                    .append(" = ")
+                    .append(LKV.encode(optionValue, optionType))
+                    .append("\n");
         }
 
         TanksLua.replaceContentsOfFile(optionsLkvFile, optionsFileBuilder.toString());

@@ -30,7 +30,7 @@ public class LevelPack extends LuaPackage {
 
         TanksLua.tanksLua.runner.safeCall(fOnLoad);
     }
-    public static LevelPack fromLevelName(String levelName) {
+    public static LevelPack fromLevelName(String levelName) throws LKVParseException {
         if (levelName == null) return null;
 
         File[] matches = new File(TanksLua.FULL_SCRIPT_PATH + "/level/").listFiles(

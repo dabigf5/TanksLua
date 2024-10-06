@@ -1,7 +1,5 @@
 package tools.important.javalkv;
 
-import java.util.function.Function;
-
 public enum LKVType {
     STRING("string", str -> {
         if (!(str.startsWith("\"") && str.endsWith("\"")))
@@ -25,9 +23,24 @@ public enum LKVType {
                 .replace("\\\"", "\"")
                 .replace("\\\\", "\\");
     },
-            String.class),
-    INT("int", Integer::parseInt, Integer.class),
-    FLOAT("float", Float::parseFloat, Float.class),
+            obj -> {
+                String string = (String) obj;
+
+                return '"'+
+                        string
+                                .replace("\\", "\\\\")
+                                .replace("\"", "\\\"")
+                                .replace("\f", "\\f")
+                                .replace("\r", "\\r")
+                                .replace("\b", "\\b")
+                                .replace("\t", "\\t")
+                                .replace("\n", "\\n")
+                        +'"';
+            },
+            String.class
+    ),
+    INT("int", Integer::parseInt, String::valueOf, Integer.class),
+    FLOAT("float", Float::parseFloat, String::valueOf, Float.class),
     BOOLEAN("boolean", str -> {
         boolean isTrue = str.equals("true");
         boolean isFalse = str.equals("false");
@@ -35,16 +48,28 @@ public enum LKVType {
         if (!(isTrue || isFalse)) throw new LKVParseException("Invalid boolean");
 
         return isTrue;
-    }, Boolean.class),
+    },
+            String::valueOf,
+            Boolean.class),
 
 
 
-    VERSION("version", SemanticVersion::fromVersionString, SemanticVersion.class),
-    TYPE("type", str -> {
-        LKVType type = findType(str);
-        if (type == null) throw new LKVParseException("Invalid type");
-        return type;
-    }, LKVType.class)
+    VERSION(
+            "version",
+            SemanticVersion::fromVersionString,
+            version -> ((SemanticVersion)version).toVersionString(),
+            SemanticVersion.class
+    ),
+    TYPE(
+            "type",
+            str -> {
+                LKVType type = findType(str);
+                if (type == null) throw new LKVParseException("Invalid type");
+                return type;
+            },
+            type -> ((LKVType) type).typeName,
+            LKVType.class
+    ),
 
 //    CLASS("class", str -> {
 //        try {
@@ -56,11 +81,13 @@ public enum LKVType {
     ;
 
     public final String typeName;
-    public final Function<String, Object> conversion;
-    public final Class<?> expectedClass;
-    LKVType(String typeName, Function<String, Object> conversion, Class<?> expectedClass) {
+    final LKVValueDecoder decoder;
+    final LKVValueEncoder encoder;
+    final Class<?> expectedClass;
+    LKVType(String typeName, LKVValueDecoder decoder, LKVValueEncoder encoder, Class<?> expectedClass) {
         this.typeName = typeName;
-        this.conversion = conversion;
+        this.decoder = decoder;
+        this.encoder = encoder;
         this.expectedClass = expectedClass;
     }
 

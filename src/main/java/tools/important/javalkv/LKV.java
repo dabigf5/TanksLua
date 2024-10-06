@@ -16,7 +16,7 @@ public class LKV {
         Object converted;
 
         try {
-            converted = pairType.conversion.apply(rawValue.replace("\r", ""));
+            converted = pairType.decoder.decode(rawValue.replace("\r", ""));
         } catch (Exception e) {
             throw new LKVParseException(e);
         }
@@ -25,6 +25,12 @@ public class LKV {
         return new LKVValue(pairType, converted);
     }
 
+    /**
+     * A method to parse a string as LKV
+     * @param lkv The LKV string you want to parse
+     * @return A HashMap which contains a list of each declared LKV value in the LKV string
+     * @throws LKVParseException When the LKV string contains a syntactical or semantical problem
+     */
     public static HashMap<String, LKVValue> parse(String lkv) throws LKVParseException {
         HashMap<String, LKVValue> pairs = new HashMap<>();
         String[] lkvFileSplit = lkv.split("\n");
@@ -53,6 +59,21 @@ public class LKV {
         }
 
         return pairs;
+    }
+
+
+    /**
+     * Encode a value as an LKV value
+     * @param object The value you wish to encode
+     * @param type The LKVType that the value conforms to
+     * @return The encoded LKV string
+     */
+    public static String encode(Object object, LKVType type) {
+        try {
+            return type.encoder.encode(object);
+        } catch (ClassCastException ce) {
+            throw new IllegalArgumentException("Value does not conform to LKVType's expectedClass!", ce);
+        }
     }
 
     /**
