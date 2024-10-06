@@ -22,6 +22,8 @@ class TanksLuaOptions {
 }
 
 object TanksLua {
+    const val VERSION = "TanksLua 0.4.0"
+
     val internalState: Lua = LuaJit().apply { openLibraries() }
     lateinit var evalBox: EvalBox
     lateinit var luaOptionsButton: Button

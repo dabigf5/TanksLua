@@ -1,10 +1,12 @@
 package tools.important.tankslua.screen
 
+import tanks.Drawing
 import tanks.Game
 import tanks.gui.Button
 import tanks.gui.screen.Screen
 import tanks.gui.screen.ScreenOptions
 import tools.important.tankslua.TanksLua
+import tools.important.tankslua.gui.ToggleButton
 
 class ScreenOptionsLua : Screen() {
     val backButton = Button(
@@ -18,15 +20,15 @@ class ScreenOptionsLua : Screen() {
         TanksLua.options.save()
     }
 
-    val toggleEvalBox = Button( // todo: toggle button
+    val toggleEvalBox = ToggleButton(
         centerX,
         centerY - objYSpace,
         objWidth,
         objHeight,
-        "Eval box"
-    ) {
-        TanksLua.options.evalBoxEnabled = !TanksLua.options.evalBoxEnabled
-    }
+        "Eval box",
+        { b -> TanksLua.options.evalBoxEnabled = b },
+        TanksLua.options.evalBoxEnabled
+    )
 
     init {
         music = "menu_options.ogg"
@@ -40,6 +42,17 @@ class ScreenOptionsLua : Screen() {
 
     override fun draw() {
         drawDefaultBackground()
+
+        val drawing = Drawing.drawing!!
+
+        drawing.setInterfaceFontSize(titleSize)
+        drawing.setColor(0.0, 0.0, 0.0)
+
+        drawing.drawInterfaceText(centerX, centerY - objYSpace * 3.5, "TanksLua Options")
+
+        drawing.setInterfaceFontSize(titleSize/2)
+        drawing.drawInterfaceText(centerX, centerY - objYSpace * 3.0, TanksLua.VERSION)
+
         backButton.draw()
         toggleEvalBox.draw()
     }
