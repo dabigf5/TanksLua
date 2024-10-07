@@ -50,24 +50,24 @@ private class ParseState(val text: String, var position: Int = 0) {
 private fun String.decodeTKVValue(type: TKVType): TKVValue {
     when (type) {
         TKVType.INT -> {
-            return TKVValue(TKVType.INT, toIntOrNull() ?: decodeFail("malformed int"))
+            return TKVValue(TKVType.INT, toIntOrNull() ?: decodeFail("Malformed int"))
         }
         TKVType.FLOAT -> {
-            return TKVValue(TKVType.FLOAT, toFloatOrNull() ?: decodeFail("malformed float"))
+            return TKVValue(TKVType.FLOAT, toFloatOrNull() ?: decodeFail("Malformed float"))
         }
         TKVType.DOUBLE -> {
-            return TKVValue(TKVType.DOUBLE, toDoubleOrNull() ?: decodeFail("malformed double"))
+            return TKVValue(TKVType.DOUBLE, toDoubleOrNull() ?: decodeFail("Malformed double"))
         }
         TKVType.BOOLEAN -> {
-            if (this != "true" && this != "false") decodeFail("malformed bool")
+            if (this != "true" && this != "false") decodeFail("Malformed bool")
             return TKVValue(TKVType.BOOLEAN, this == "true")
         }
         TKVType.STRING -> {
-            if (!startsWith('"') && endsWith('"')) decodeFail("malformed string")
+            if (!startsWith('"') && endsWith('"')) decodeFail("Malformed string")
             val noQuotes = try {
                 substring(1..<length-1)
             } catch (_: StringIndexOutOfBoundsException) {
-                decodeFail("malformed string")
+                decodeFail("Malformed string")
             }
 
             val unescaped = noQuotes
@@ -99,15 +99,16 @@ fun decodeTKV(text: String): Map<String, TKVValue> {
         val name = state.readIdentifier()
         state.skipWhitespace()
 
-        if (state.peek() != '=') decodeFail("expected '='")
+        if (state.peek() != '=') decodeFail("Expected '='")
         state.consume()
 
         state.skipWhitespace()
         val value = state.readValue()
-        if (!state.finished && state.peek() != '\n') decodeFail("expected newline or eof")
+        if (!state.finished && state.peek() != '\n') decodeFail("Expected newline or eof")
+
+        if (map[name] != null) decodeFail("Two entries cannot have the same name")
 
         val decoded = value.decodeTKVValue(type)
-
         map[name] = decoded
     }
 
