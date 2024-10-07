@@ -17,7 +17,6 @@ class TKVValue(
     val value: Any
 ) {
     init {
-        value.javaClass
         if (!type.typeClass.isInstance(value)) error("Invalid value given for TKVValue")
     }
 }
