@@ -7,36 +7,50 @@ import tanks.Panel
 import tanks.extension.Extension
 import tanks.gui.Button
 import tanks.gui.screen.ScreenOptions
-import tools.important.tankslua.gui.EvalBox
-import tools.important.tankslua.gui.drawNotifications
-import tools.important.tankslua.gui.updateNotifications
+import tools.important.tankslua.gui.*
 import tools.important.tankslua.screen.ScreenOptionsLua
-import tools.important.tankslua.tkv.TKVType
-import tools.important.tankslua.tkv.TKVValue
-import tools.important.tankslua.tkv.decodeTKV
-import tools.important.tankslua.tkv.encodeTKV
+import tools.important.tankslua.tkv.*
 import java.io.File
+import java.io.IOException
 
 class TanksLuaOptions {
     var evalBoxEnabled: Boolean = false
 
     fun save() {
-        val encodedOptions = encodeTKV(mapOf(
-            "evalBoxEnabled" to TKVValue(TKVType.BOOLEAN, evalBoxEnabled)
-        ))
+        val encodedOptions = encodeTKV(
+            mapOf(
+                "evalBoxEnabled" to TKVValue(TKVType.BOOLEAN, evalBoxEnabled)
+            )
+        )
 
-        TanksLua.settingsFile.bufferedWriter().use {
-            it.write(encodedOptions)
+        try {
+            TanksLua.settingsFile.bufferedWriter().use {
+                it.write(encodedOptions)
+            }
+        } catch (i: IOException) {
+            Notification("Failed to write options (${i.message})", NotificationType.ERR)
+            return
         }
     }
 
     fun load() {
         if (!TanksLua.settingsFile.exists()) return
 
-        val encodedOptions = TanksLua.settingsFile.bufferedReader().use {
-            it.readText()
+        val encodedOptions = try {
+            TanksLua.settingsFile.bufferedReader().use {
+                it.readText()
+            }
+        } catch (i: IOException) {
+            Notification("Failed to read options (${i.message})", NotificationType.ERR)
+            return
         }
-        val decodedOptions = decodeTKV(encodedOptions)
+
+        val decodedOptions = try {
+            decodeTKV(encodedOptions)
+        } catch (e: TKVDecodeException) {
+            Notification("Failed to decode options (${e.message})", NotificationType.ERR)
+            return
+        }
 
         for ((name, value) in decodedOptions) {
             when (name) {
