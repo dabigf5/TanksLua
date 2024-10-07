@@ -2,20 +2,14 @@ package tools.important.tankslua.tkv
 
 import kotlin.reflect.KClass
 
-enum class TKVType(
-    val typeClass: KClass<*>,
-    val codeName: String,
-) {
+enum class TKVType(val typeClass: KClass<*>, val codeName: String) {
     STRING(String::class, "string"),
     INT(Int::class, "int"),
     FLOAT(Float::class, "float"),
     DOUBLE(Double::class, "double")
 }
 
-class TKVValue(
-    val type: TKVType,
-    val value: Any
-) {
+class TKVValue(val type: TKVType, val value: Any) {
     init {
         if (!type.typeClass.isInstance(value)) error("Invalid value given for TKVValue")
     }
