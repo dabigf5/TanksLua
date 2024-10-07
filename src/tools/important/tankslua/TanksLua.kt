@@ -1,8 +1,6 @@
 package tools.important.tankslua
 
 import main.Tanks
-import party.iroiro.luajava.Lua
-import party.iroiro.luajava.luajit.LuaJit
 import tanks.Drawing
 import tanks.Game
 import tanks.Panel
@@ -13,18 +11,52 @@ import tools.important.tankslua.gui.EvalBox
 import tools.important.tankslua.gui.drawNotifications
 import tools.important.tankslua.gui.updateNotifications
 import tools.important.tankslua.screen.ScreenOptionsLua
+import tools.important.tankslua.tkv.TKVType
+import tools.important.tankslua.tkv.TKVValue
+import tools.important.tankslua.tkv.decodeTKV
+import tools.important.tankslua.tkv.encodeTKV
+import java.io.File
 
 class TanksLuaOptions {
     var evalBoxEnabled: Boolean = false
 
-    fun save() {} // todo
-    fun load() {} // todo
+    fun save() {
+        val encodedOptions = encodeTKV(mapOf(
+            "evalBoxEnabled" to TKVValue(TKVType.BOOLEAN, evalBoxEnabled)
+        ))
+
+        TanksLua.settingsFile.bufferedWriter().use {
+            it.write(encodedOptions)
+        }
+    }
+
+    fun load() {
+        if (!TanksLua.settingsFile.exists()) return
+
+        val encodedOptions = TanksLua.settingsFile.bufferedReader().use {
+            it.readText()
+        }
+        val decodedOptions = decodeTKV(encodedOptions)
+
+        for ((name, value) in decodedOptions) {
+            when (name) {
+                "evalBoxEnabled" -> {
+                    if (value.type != TKVType.BOOLEAN) continue
+                    evalBoxEnabled = value.value as Boolean
+                }
+            }
+        }
+    }
 }
 
 object TanksLua {
     const val VERSION = "TanksLua 0.4.0"
+    val tanksLuaDir = File(
+        System.getProperty("user.home").replace('\\','/')+"/.tanks/tankslua"
+    ).apply { if (!exists()) mkdir() }
 
-    val internalState: Lua = LuaJit().apply { openLibraries() }
+    val settingsFile = File(tanksLuaDir.path+"/settings.tkv")
+
     lateinit var evalBox: EvalBox
     lateinit var luaOptionsButton: Button
     val options = TanksLuaOptions()

@@ -1,11 +1,8 @@
 package tools.important.tankslua.tkv
 
-class TKVEncodeException(message: String) : Exception(message)
-private fun encodeFail(message: String): Nothing = throw TKVEncodeException(message)
-
 private fun TKVValue.encode(): String {
     when (type) {
-        TKVType.INT, TKVType.FLOAT, TKVType.DOUBLE -> {
+        TKVType.INT, TKVType.FLOAT, TKVType.DOUBLE, TKVType.BOOLEAN -> {
             return value.toString()
         }
 

@@ -58,6 +58,10 @@ private fun String.decodeTKVValue(type: TKVType): TKVValue {
         TKVType.DOUBLE -> {
             return TKVValue(TKVType.DOUBLE, toDoubleOrNull() ?: decodeFail("malformed double"))
         }
+        TKVType.BOOLEAN -> {
+            if (this != "true" && this != "false") decodeFail("malformed bool")
+            return TKVValue(TKVType.BOOLEAN, this == "true")
+        }
         TKVType.STRING -> {
             if (!startsWith('"') && endsWith('"')) decodeFail("malformed string")
             val noQuotes = try {
