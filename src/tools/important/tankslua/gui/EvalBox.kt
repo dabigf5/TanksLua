@@ -11,6 +11,7 @@ import tools.important.tankslua.initialize
 
 class EvalBox {
     val luaState: Lua = LuaJit().apply { initialize() }
+    var lastEvalResult: String? = null
 
     val codeBox: TextBox = TextBox(
         Drawing.drawing.interfaceSizeX * 0.5,
@@ -32,7 +33,14 @@ class EvalBox {
         "Evaluate",
         fun() {
             try {
-                luaState.load(codeBox.inputText)
+                val inputText = codeBox.inputText
+
+                val code = if (inputText.startsWith('='))
+                    "return "+inputText.substring(1)
+                else
+                    inputText
+
+                luaState.load(code)
             } catch (e: LuaException) {
                 Notification("Your code ran into an issue loading: ${e.message}", NotificationType.ERR)
                 return
@@ -40,7 +48,9 @@ class EvalBox {
 
             val function: LuaValue = luaState.get()
             try {
-                function.call()
+                val results = function.call()
+                lastEvalResult = luaState.get("tostring")
+                    .call(results.getOrNull(0))[0].toString()
             } catch (e: LuaException) {
                 Notification("Your code ran into an issue running: ${e.message}", NotificationType.ERR)
                 return
@@ -53,6 +63,13 @@ class EvalBox {
     fun draw() {
         evalButton.draw()
         codeBox.draw()
+        val drawing = Drawing.drawing!!
+
+        if (lastEvalResult != null) {
+            drawing.setColor(0.0, 0.0, 0.0)
+            drawing.setInterfaceFontSize(20.0)
+            drawing.drawInterfaceText(codeBox.posX - codeBox.sizeX/2, codeBox.posY + codeBox.sizeY, lastEvalResult)
+        }
     }
 
     fun update() {
