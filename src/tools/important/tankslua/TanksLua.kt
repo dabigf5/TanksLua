@@ -52,10 +52,26 @@ class TanksLuaOptions {
 object TanksLua {
     const val VERSION = "TanksLua 0.4.0"
     val tanksLuaDir = File(
-        System.getProperty("user.home").replace('\\','/')+"/.tanks/tankslua"
-    ).apply { if (!exists()) mkdir() }
+        System.getProperty("user.home").replace('\\', '/') + "/.tanks/tankslua"
+    ).apply {
+        if (!isDirectory) {
+            if (exists()) delete()
+            mkdir()
+        }
+    }
 
-    val settingsFile = File(tanksLuaDir.path+"/settings.tkv")
+    val levelDir = File(tanksLuaDir.path + "/level").apply {
+        if (!isDirectory) {
+            if (exists()) delete()
+            mkdir()
+        }
+    }
+
+    val settingsFile = File(tanksLuaDir.path + "/settings.tkv").apply {
+        if (isDirectory) {
+            if (exists()) delete()
+        }
+    }
 
     lateinit var evalBox: EvalBox
     lateinit var luaOptionsButton: Button
