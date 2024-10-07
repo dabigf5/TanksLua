@@ -1,11 +1,14 @@
 package tools.important.tankslua
 
 import main.Tanks
+import party.iroiro.luajava.LuaException
 import tanks.Drawing
 import tanks.Game
 import tanks.Panel
 import tanks.extension.Extension
 import tanks.gui.Button
+import tanks.gui.screen.Screen
+import tanks.gui.screen.ScreenGame
 import tanks.gui.screen.ScreenOptions
 import tools.important.tankslua.gui.*
 import tools.important.tankslua.screen.ScreenOptionsLua
@@ -65,6 +68,11 @@ class TanksLuaOptions {
 
 object TanksLua {
     const val VERSION = "TanksLua 0.4.0"
+
+    lateinit var evalBox: EvalBox
+    lateinit var luaOptionsButton: Button
+    val options = TanksLuaOptions()
+
     val tanksLuaDir = File(
         System.getProperty("user.home").replace('\\', '/') + "/.tanks/tankslua"
     ).apply {
@@ -86,11 +94,9 @@ object TanksLua {
             if (exists()) delete()
         }
     }
-
-    lateinit var evalBox: EvalBox
-    lateinit var luaOptionsButton: Button
-    val options = TanksLuaOptions()
 }
+
+var lastScreen: Screen? = null
 
 class TanksLuaExtension : Extension("TanksLua") {
     override fun setUp() {
@@ -108,16 +114,50 @@ class TanksLuaExtension : Extension("TanksLua") {
         TanksLua.options.load()
     }
 
+    fun screenChanged(old: Screen?, new: Screen) {
+        if (new is ScreenGame) {
+            tryLoadingLevelScript(new.name.replace(".tanks",""))
+        } else if (old is ScreenGame) {
+            clearCurrentLevelScript()
+        }
+    }
+
     override fun update() {
         if (TanksLua.options.evalBoxEnabled) TanksLua.evalBox.update()
-        if (Game.screen is ScreenOptions) TanksLua.luaOptionsButton.update()
+        val screen = Game.screen
+
+        if (screen is ScreenOptions) TanksLua.luaOptionsButton.update()
         updateNotifications()
+
+        val levelScript = currentLevelScript
+        if (levelScript != null) {
+            try {
+                levelScript.updateFunction?.call(Panel.frameFrequency)
+            } catch (e: LuaException) {
+                Notification("The level script ran into an issue updating: ${e.message}", NotificationType.ERR)
+                clearCurrentLevelScript()
+            }
+        }
+
+        if (screen != lastScreen) screenChanged(lastScreen, screen)
+
+        lastScreen = screen
     }
 
     override fun draw() {
         if (TanksLua.options.evalBoxEnabled) TanksLua.evalBox.draw()
         drawNotifications()
         if (Game.screen is ScreenOptions) TanksLua.luaOptionsButton.draw()
+
+        val levelScript = currentLevelScript
+        if (levelScript != null) {
+            try {
+                levelScript.drawFunction?.call(Panel.frameFrequency)
+            } catch (e: LuaException) {
+                Notification("The level script ran into an issue drawing: ${e.message}", NotificationType.ERR)
+                clearCurrentLevelScript()
+            }
+        }
 
         Panel.panel.drawMouseTarget()
     }
