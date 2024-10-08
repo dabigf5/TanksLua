@@ -37,7 +37,9 @@ private fun LuaValue.getOptionalOfType(key: String, type: Lua.LuaType): LuaValue
 }
 
 fun tryLoadingLevelScript(name: String) {
-    val file = TanksLua.levelDir.listFiles()!!.find { it.name == name } ?: return
+    // note: the nameWithoutExtension won't work for some formats like .tar.gz,
+    // might need to replace if the need introduces itself
+    val file = TanksLua.levelDir.listFiles()!!.find { it.nameWithoutExtension == name } ?: return
 
     val repo = openAsRepository(file)
 
