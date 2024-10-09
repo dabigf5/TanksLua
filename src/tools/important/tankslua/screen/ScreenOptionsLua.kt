@@ -7,6 +7,9 @@ import tanks.gui.screen.Screen
 import tanks.gui.screen.ScreenOptions
 import tools.important.tankslua.TanksLua
 import tools.important.tankslua.gui.ToggleButton
+import tools.important.tankslua.openFileManagerTo
+import tools.important.tankslua.tanksLuaDir
+import tools.important.tankslua.verifyDirectoryStructure
 
 class ScreenOptionsLua : Screen() {
     val backButton = Button(
@@ -34,12 +37,29 @@ class ScreenOptionsLua : Screen() {
 
     val gotoLuaExtensions = Button(
         centerX,
-        centerY + objYSpace * 2.0,
+        centerY + objYSpace,
         objWidth,
         objHeight,
         "Lua Extensions",
     ) {
         Game.screen = ScreenLuaExtensions()
+    }
+
+    val tanksluaFiles = Button(
+        centerX,
+        centerY + objYSpace * 2,
+        objWidth,
+        objHeight,
+        "TanksLua files",
+    ) {
+        verifyDirectoryStructure()
+        openFileManagerTo(tanksLuaDir)
+    } .apply {
+        val imgsize = 25.0 * Drawing.drawing.interfaceScaleZoom
+        image = "icons/link.png"
+        imageSizeX = imgsize
+        imageSizeY = imgsize
+        imageXOffset = 145.0 * sizeX / 350.0
     }
 
     init {
@@ -51,6 +71,7 @@ class ScreenOptionsLua : Screen() {
         backButton.update()
         toggleEvalBox.update()
         gotoLuaExtensions.update()
+        tanksluaFiles.update()
     }
 
     override fun draw() {
@@ -69,5 +90,6 @@ class ScreenOptionsLua : Screen() {
         backButton.draw()
         toggleEvalBox.draw()
         gotoLuaExtensions.draw()
+        tanksluaFiles.draw()
     }
 }

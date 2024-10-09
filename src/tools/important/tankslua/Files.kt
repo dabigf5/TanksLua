@@ -1,4 +1,6 @@
 package tools.important.tankslua
+import tools.important.tankslua.gui.Notification
+import tools.important.tankslua.gui.NotificationType
 import java.io.File
 
 const val ILLEGAL_FILENAME_CHARS = "<>:\"\\/|?*"
@@ -18,6 +20,28 @@ fun toLegalFilename(filename: String): String {
         if (ch in ILLEGAL_FILENAME_CHARS) mutableFilename[i] = '-'
     }
     return mutableFilename.toString()
+}
+
+fun openFileManagerTo(file: File) {
+    openFileManagerTo(file.path)
+}
+
+// thank you to Lancelot for the original java version of this function in modapi
+fun openFileManagerTo(path: String) {
+    val os = System.getProperty("os.name").lowercase()
+
+    val command = if (os.contains("win")) {
+        "explorer"
+    } else if (os.contains("mac")) {
+        "open"
+    } else if (os.contains("nix") || os.contains("nux") || os.contains("bsd")) {
+        "xdg-open"
+    } else {
+        Notification("Unable to open '$path', unsupported operating system.", NotificationType.ERR, 1000.0)
+        return
+    }
+
+    ProcessBuilder(command, path).start()
 }
 
 fun verifyDirectory(directory: File) {
