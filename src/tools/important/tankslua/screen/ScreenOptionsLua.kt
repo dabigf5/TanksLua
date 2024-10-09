@@ -24,8 +24,8 @@ class ScreenOptionsLua : Screen() {
     }
 
     val toggleEvalBox = ToggleButton(
-        centerX,
-        centerY - objYSpace,
+        centerX - objXSpace/2,
+        centerY - objYSpace*0.5,
         objWidth,
         objHeight,
         "Eval box",
@@ -34,8 +34,8 @@ class ScreenOptionsLua : Screen() {
     )
 
     val enableLevelScripts = ToggleButton(
-        centerX,
-        centerY,
+        centerX - objXSpace/2,
+        centerY - objYSpace*1.5,
         objWidth,
         objHeight,
         "Level scripts",
@@ -44,8 +44,8 @@ class ScreenOptionsLua : Screen() {
     )
 
     val gotoLuaExtensions = Button(
-        centerX,
-        centerY + objYSpace,
+        centerX + objXSpace/2,
+        centerY - objYSpace*1.5,
         objWidth,
         objHeight,
         "Lua Extensions",
@@ -54,8 +54,8 @@ class ScreenOptionsLua : Screen() {
     }
 
     val tanksluaFiles = Button(
-        centerX,
-        centerY + objYSpace * 2,
+        centerX + objXSpace/2,
+        centerY - objYSpace*0.5,
         objWidth,
         objHeight,
         "TanksLua files",
