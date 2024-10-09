@@ -22,7 +22,8 @@ class TanksLuaOptions {
     fun save() {
         val encodedOptions = encodeTKV(
             mapOf(
-                "evalBoxEnabled" to TKVValue(TKVType.BOOLEAN, evalBoxEnabled)
+                "evalBoxEnabled" to TKVValue(TKVType.BOOLEAN, evalBoxEnabled),
+                "levelScriptsEnabled" to TKVValue(TKVType.BOOLEAN, levelScriptsEnabled)
             )
         )
 
