@@ -2,6 +2,7 @@ package tools.important.tankslua.gui
 
 import tanks.Drawing
 import tanks.Panel
+import kotlin.math.min
 
 private val notifications = mutableListOf<Notification>()
 
@@ -17,7 +18,11 @@ class Notification(
 ) {
     companion object {
         const val FONT_SIZE = 20.0
-        const val NOTIFICATION_OPACITY = 100.0
+
+        const val TEXT_OPACITY = 255.0
+        const val BACKGROUND_OPACITY = 100.0
+
+        const val GRACE_PERIOD_LENGTH = 50.0
     }
 
     init {
@@ -30,14 +35,20 @@ class Notification(
 
         val lifetimeFraction = (remainingTime / maxTime)
 
-        val width = drawing.interfaceSizeX * 0.3
-        val height = drawing.interfaceSizeY * 0.14
+        val width = drawing.interfaceSizeX * 0.33
+        val height = drawing.interfaceSizeY * 0.15
 
         val x = drawing.interfaceSizeX * 0.85
         val y = (drawing.interfaceSizeY * 0.8) - (height+5.0) * index
 
-        val textOpacity = lifetimeFraction * 255.0
-        val backgroundOpacity = lifetimeFraction * NOTIFICATION_OPACITY
+        val textOpacity = min(
+            lifetimeFraction * TEXT_OPACITY + GRACE_PERIOD_LENGTH,
+            TEXT_OPACITY
+        )
+        val backgroundOpacity = min(
+            lifetimeFraction * BACKGROUND_OPACITY + GRACE_PERIOD_LENGTH,
+            BACKGROUND_OPACITY
+        )
 
         when (type) {
             NotificationType.INFO -> drawing.setColor(0.0, 0.0, 0.0, backgroundOpacity)
