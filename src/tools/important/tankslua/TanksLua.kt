@@ -17,6 +17,7 @@ import java.io.IOException
 
 class TanksLuaOptions {
     var evalBoxEnabled: Boolean = false
+    var levelScriptsEnabled: Boolean = false
 
     fun save() {
         val encodedOptions = encodeTKV(
@@ -60,6 +61,10 @@ class TanksLuaOptions {
                     if (value.type != TKVType.BOOLEAN) continue
                     evalBoxEnabled = value.value as Boolean
                 }
+                "levelScriptsEnabled" -> {
+                    if (value.type != TKVType.BOOLEAN) continue
+                    levelScriptsEnabled = value.value as Boolean
+                }
             }
         }
     }
@@ -96,7 +101,8 @@ class TanksLuaExtension : Extension("TanksLua") {
 
     fun screenChanged(old: Screen?, new: Screen) {
         if (new is ScreenGame) {
-            if (new.name != null) tryLoadingLevelScript(new.name.replace(".tanks",""))
+            if (TanksLua.options.levelScriptsEnabled && new.name != null)
+                tryLoadingLevelScript(new.name.replace(".tanks",""))
         } else if (old is ScreenGame) {
             clearCurrentLevelScript()
         }

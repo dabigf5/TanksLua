@@ -33,7 +33,15 @@ class ScreenOptionsLua : Screen() {
         TanksLua.options.evalBoxEnabled
     )
 
-
+    val enableLevelScripts = ToggleButton(
+        centerX,
+        centerY,
+        objWidth,
+        objHeight,
+        "Level scripts",
+        { b -> TanksLua.options.levelScriptsEnabled = b },
+        TanksLua.options.levelScriptsEnabled
+    )
 
     val gotoLuaExtensions = Button(
         centerX,
@@ -72,6 +80,7 @@ class ScreenOptionsLua : Screen() {
         toggleEvalBox.update()
         gotoLuaExtensions.update()
         tanksluaFiles.update()
+        enableLevelScripts.update()
     }
 
     override fun draw() {
@@ -91,5 +100,6 @@ class ScreenOptionsLua : Screen() {
         toggleEvalBox.draw()
         gotoLuaExtensions.draw()
         tanksluaFiles.draw()
+        enableLevelScripts.draw()
     }
 }
