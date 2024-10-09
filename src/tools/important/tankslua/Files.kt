@@ -2,6 +2,7 @@ package tools.important.tankslua
 import tools.important.tankslua.gui.Notification
 import tools.important.tankslua.gui.NotificationType
 import java.io.File
+import java.io.IOException
 
 const val ILLEGAL_FILENAME_CHARS = "<>:\"\\/|?*"
 
@@ -41,7 +42,11 @@ fun openFileManagerTo(path: String) {
         return
     }
 
-    ProcessBuilder(command, path).start()
+    try {
+        ProcessBuilder(command, path).start()
+    } catch (e: IOException) {
+        Notification("Unable to open '$path', IO error occurred: ${e.message}", NotificationType.ERR, 1000.0)
+    }
 }
 
 fun verifyDirectory(directory: File) {
