@@ -19,6 +19,10 @@ private fun TKVValue.encode(): String {
 
             return "\"$escaped\""
         }
+
+        TKVType.VERSION -> {
+            return (value as SemanticVersion).toVersionString()
+        }
     }
 }
 

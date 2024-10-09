@@ -1,6 +1,7 @@
 package tools.important.tankslua.tkv
 
 class TKVDecodeException(message: String) : Exception(message)
+
 private fun decodeFail(message: String): Nothing = throw TKVDecodeException(message)
 
 private class ParseState(val text: String, var position: Int = 0) {
@@ -9,9 +10,11 @@ private class ParseState(val text: String, var position: Int = 0) {
         if (peekPos < 0 || peekPos >= text.length) return null
         return text[peekPos]
     }
+
     fun consume(amt: Int = 1) {
         position += amt
     }
+
     val finished: Boolean
         get() = position >= text.length
 
@@ -31,7 +34,7 @@ private class ParseState(val text: String, var position: Int = 0) {
     }
 
     fun readValue(): String {
-        return readWhile { it != '\n' }
+        return readWhile { it != '\n' && it != '\r' }
     }
 
     fun readType(): TKVType {
@@ -52,20 +55,24 @@ private fun String.decodeTKVValue(type: TKVType): TKVValue {
         TKVType.INT -> {
             return TKVValue(TKVType.INT, toIntOrNull() ?: decodeFail("Malformed int"))
         }
+
         TKVType.FLOAT -> {
             return TKVValue(TKVType.FLOAT, toFloatOrNull() ?: decodeFail("Malformed float"))
         }
+
         TKVType.DOUBLE -> {
             return TKVValue(TKVType.DOUBLE, toDoubleOrNull() ?: decodeFail("Malformed double"))
         }
+
         TKVType.BOOLEAN -> {
             if (this != "true" && this != "false") decodeFail("Malformed bool")
             return TKVValue(TKVType.BOOLEAN, this == "true")
         }
+
         TKVType.STRING -> {
-            if (!startsWith('"') && endsWith('"')) decodeFail("Malformed string")
+            if (!(startsWith('"') && endsWith('"'))) decodeFail("Malformed string")
             val noQuotes = try {
-                substring(1..<length-1)
+                substring(1..<length - 1)
             } catch (_: StringIndexOutOfBoundsException) {
                 decodeFail("Malformed string")
             }
@@ -80,6 +87,14 @@ private fun String.decodeTKVValue(type: TKVType): TKVValue {
 
             return TKVValue(TKVType.STRING, unescaped)
         }
+
+        TKVType.VERSION -> {
+            return try {
+                TKVValue(TKVType.VERSION, SemanticVersion.fromVersionString(this))
+            } catch (e: IllegalArgumentException) {
+                decodeFail(e.message!!)
+            }
+        }
     }
 }
 
@@ -89,10 +104,12 @@ fun decodeTKV(text: String): Map<String, TKVValue> {
     val state = ParseState(text)
 
     while (!state.finished) {
-        if (state.peek() == '\n') {
+        if (state.peek() == '\n' || state.peek() == '\r') {
             state.consume()
             continue
         }
+        if (state.finished) break
+
         val type = state.readType()
 
         state.skipWhitespace()
@@ -104,7 +121,7 @@ fun decodeTKV(text: String): Map<String, TKVValue> {
 
         state.skipWhitespace()
         val value = state.readValue()
-        if (!state.finished && state.peek() != '\n') decodeFail("Expected newline or eof")
+        if (!state.finished && state.peek() != '\n' && state.peek() != '\r') decodeFail("Expected newline or eof")
 
         if (map[name] != null) decodeFail("Two entries cannot have the same name")
 
@@ -116,11 +133,12 @@ fun decodeTKV(text: String): Map<String, TKVValue> {
 }
 
 fun main() {
-        decodeTKV("""
+    decodeTKV(
+        """
 string myString = "skibidi string"
 float myFloat = 2.0
 int myInt = 2
 double myDouble = 2.0
 """
-        )
+    )
 }

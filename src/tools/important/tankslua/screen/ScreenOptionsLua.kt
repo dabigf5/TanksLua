@@ -30,6 +30,18 @@ class ScreenOptionsLua : Screen() {
         TanksLua.options.evalBoxEnabled
     )
 
+
+
+    val gotoLuaExtensions = Button(
+        centerX,
+        centerY + objYSpace * 2.0,
+        objWidth,
+        objHeight,
+        "Lua Extensions",
+    ) {
+        Game.screen = ScreenLuaExtensions()
+    }
+
     init {
         music = "menu_options.ogg"
         musicID = "menu"
@@ -38,6 +50,7 @@ class ScreenOptionsLua : Screen() {
     override fun update() {
         backButton.update()
         toggleEvalBox.update()
+        gotoLuaExtensions.update()
     }
 
     override fun draw() {
@@ -48,12 +61,13 @@ class ScreenOptionsLua : Screen() {
         drawing.setInterfaceFontSize(titleSize)
         drawing.setColor(0.0, 0.0, 0.0)
 
-        drawing.drawInterfaceText(centerX, centerY - objYSpace * 3.5, "TanksLua Options")
+        drawing.displayInterfaceText(centerX, centerY - objYSpace * 3.5, "TanksLua Options")
 
         drawing.setInterfaceFontSize(titleSize/2)
         drawing.drawInterfaceText(centerX, centerY - objYSpace * 3.0, TanksLua.VERSION)
 
         backButton.draw()
         toggleEvalBox.draw()
+        gotoLuaExtensions.draw()
     }
 }

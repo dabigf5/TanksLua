@@ -12,7 +12,13 @@ fun clearCurrentLevelScript() {
     currentLevelScript?.luaState?.close()
     currentLevelScript = null
 }
-// todo: document, clarify that the name is misleading
+
+/**
+ * It is rather important to note that the name of this class is misleading.
+ * A 'level script' can actually store multiple scripts, or files in general, including directories.
+ *
+ * It may be changed in future versions, if I can think of anything better.
+ */
 class LevelScript(
     val repo: FileRepository,
     val luaState: Lua,
@@ -27,7 +33,7 @@ private fun loadFail(message: String, luaState: Lua? = null): Nothing {
     throw LevelScriptLoadException(message)
 }
 
-private fun LuaValue.getOptionalOfType(key: String, type: Lua.LuaType): LuaValue? {
+fun LuaValue.getOptionalOfType(key: String, type: Lua.LuaType): LuaValue? {
     val value = get(key)
 
     if (value.type() == Lua.LuaType.NIL) return null
@@ -37,11 +43,15 @@ private fun LuaValue.getOptionalOfType(key: String, type: Lua.LuaType): LuaValue
 }
 
 fun tryLoadingLevelScript(name: String) {
+    TanksLua.verifyDirectoryStructure()
+
     // note: the nameWithoutExtension won't work for some formats like .tar.gz,
     // might need to replace if the need introduces itself
     val file = TanksLua.levelDir.listFiles()!!.find { it.nameWithoutExtension == name } ?: return
 
-    val repo = openAsRepository(file)
+    val repo = try { openAsRepository(file) } catch (_: IllegalArgumentException) {
+        loadFail("Unable to open level script file as a repository!")
+    }
 
     val mainScript = repo.readFile("level.lua") ?: loadFail("Level script does not have level.lua file!")
 

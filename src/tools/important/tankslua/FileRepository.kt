@@ -13,7 +13,7 @@ fun openAsRepository(file: File): FileRepository {
         "zip" -> return ZipFileRepository(file)
     }
 
-    error("Cannot open $file as repository.")
+    throw IllegalArgumentException("Cannot open $file as repository.")
 }
 
 interface FileRepository {

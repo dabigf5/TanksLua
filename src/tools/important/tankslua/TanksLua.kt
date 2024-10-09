@@ -43,8 +43,8 @@ class TanksLuaOptions {
             TanksLua.settingsFile.bufferedReader().use {
                 it.readText()
             }
-        } catch (i: IOException) {
-            Notification("Failed to read options (${i.message})", NotificationType.ERR)
+        } catch (e: IOException) {
+            Notification("Failed to read options (${e.message})", NotificationType.ERR)
             return
         }
 
@@ -75,24 +75,34 @@ object TanksLua {
 
     val tanksLuaDir = File(
         System.getProperty("user.home").replace('\\', '/') + "/.tanks/tankslua"
-    ).apply {
-        if (!isDirectory) {
-            if (exists()) delete()
-            mkdir()
+    )
+
+    val levelDir = File(tanksLuaDir.path + "/level")
+
+    val extensionDir = File(tanksLuaDir.path + "/extension")
+    val extensionsDir = File(extensionDir.path + "/extensions")
+    val extensionOptionsDir = File(extensionDir.path + "/options")
+
+    val settingsFile = File(tanksLuaDir.path + "/settings.tkv")
+
+    fun verifyDirectory(directory: File) {
+        if (!directory.isDirectory) {
+            if (directory.exists()) directory.delete()
+            directory.mkdir()
+        }
+    }
+    fun verifyFile(file: File) {
+        if (file.isDirectory) {
+            if (file.exists()) file.delete()
         }
     }
 
-    val levelDir = File(tanksLuaDir.path + "/level").apply {
-        if (!isDirectory) {
-            if (exists()) delete()
-            mkdir()
-        }
-    }
+    fun verifyDirectoryStructure() {
+        verifyDirectory(tanksLuaDir)
+        verifyDirectory(levelDir)
+        verifyDirectory(extensionDir)
 
-    val settingsFile = File(tanksLuaDir.path + "/settings.tkv").apply {
-        if (isDirectory) {
-            if (exists()) delete()
-        }
+        verifyFile(settingsFile)
     }
 }
 
@@ -111,7 +121,10 @@ class TanksLuaExtension : Extension("TanksLua") {
             Game.screen = ScreenOptionsLua()
         }
 
+        TanksLua.verifyDirectoryStructure()
+
         TanksLua.options.load()
+        loadLuaExtensions()
     }
 
     fun screenChanged(old: Screen?, new: Screen) {
@@ -138,6 +151,16 @@ class TanksLuaExtension : Extension("TanksLua") {
                 clearCurrentLevelScript()
             }
         }
+        for (extension in loadedExtensions) {
+            if (extension !is RealLuaExtension) continue
+
+            if (extension.enabled && extension.updateFunction != null) try {
+                extension.updateFunction!!.call()
+            } catch (e: LuaException) {
+                Notification("Extension ${extension.name}'s update function ran into a problem: ${e.message}", NotificationType.ERR, 1000.0)
+                extension.updateFunction = null
+            }
+        }
 
         if (screen != lastScreen) screenChanged(lastScreen, screen)
 
@@ -156,6 +179,17 @@ class TanksLuaExtension : Extension("TanksLua") {
             } catch (e: LuaException) {
                 Notification("The level script ran into an issue drawing: ${e.message}", NotificationType.ERR)
                 clearCurrentLevelScript()
+            }
+        }
+
+        for (extension in loadedExtensions) {
+            if (extension !is RealLuaExtension) continue
+
+            if (extension.enabled && extension.drawFunction != null) try {
+                extension.drawFunction!!.call()
+            } catch (e: LuaException) {
+                Notification("Extension ${extension.name}'s draw function ran into a problem: ${e.message}", NotificationType.ERR)
+                extension.drawFunction = null
             }
         }
 
