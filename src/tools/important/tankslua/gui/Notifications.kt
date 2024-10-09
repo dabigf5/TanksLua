@@ -22,7 +22,7 @@ class Notification(
         const val TEXT_OPACITY = 255.0
         const val BACKGROUND_OPACITY = 100.0
 
-        const val GRACE_PERIOD_LENGTH = 50.0
+        const val GRACE_PERIOD_FRACTION = 0.4
     }
 
     init {
@@ -42,11 +42,11 @@ class Notification(
         val y = (drawing.interfaceSizeY * 0.8) - (height+5.0) * index
 
         val textOpacity = min(
-            lifetimeFraction * TEXT_OPACITY + GRACE_PERIOD_LENGTH,
+            lifetimeFraction * TEXT_OPACITY + remainingTime * GRACE_PERIOD_FRACTION,
             TEXT_OPACITY
         )
         val backgroundOpacity = min(
-            lifetimeFraction * BACKGROUND_OPACITY + GRACE_PERIOD_LENGTH,
+            lifetimeFraction * BACKGROUND_OPACITY + remainingTime * GRACE_PERIOD_FRACTION,
             BACKGROUND_OPACITY
         )
 
