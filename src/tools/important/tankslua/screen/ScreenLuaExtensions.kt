@@ -7,6 +7,8 @@ import tanks.gui.ButtonList
 import tanks.gui.screen.Screen
 import tools.important.tankslua.RealLuaExtension
 import tools.important.tankslua.clearLoadedExtensions
+import tools.important.tankslua.gui.Notification
+import tools.important.tankslua.gui.NotificationType
 import tools.important.tankslua.loadLuaExtensions
 import tools.important.tankslua.loadedExtensions
 
@@ -63,6 +65,8 @@ class ScreenLuaExtensions : Screen() {
 
         extensions.buttons = getExtensionButtons()
         extensions.sortButtons()
+
+        Notification("Reloaded extensions!", NotificationType.INFO)
     }
 
     override fun update() {
