@@ -43,11 +43,11 @@ fun LuaValue.getOptionalOfType(key: String, type: Lua.LuaType): LuaValue? {
 }
 
 fun tryLoadingLevelScript(name: String) {
-    TanksLua.verifyDirectoryStructure()
+    verifyDirectoryStructure()
 
     // note: the nameWithoutExtension won't work for some formats like .tar.gz,
     // might need to replace if the need introduces itself
-    val file = TanksLua.levelDir.listFiles()!!.find { it.nameWithoutExtension == name } ?: return
+    val file = levelDir.listFiles()!!.find { it.nameWithoutExtension == name } ?: return
 
     val repo = try { openAsRepository(file) } catch (_: IllegalArgumentException) {
         loadFail("Unable to open level script file as a repository!")

@@ -13,7 +13,6 @@ import tanks.gui.screen.ScreenOptions
 import tools.important.tankslua.gui.*
 import tools.important.tankslua.screen.ScreenOptionsLua
 import tools.important.tankslua.tkv.*
-import java.io.File
 import java.io.IOException
 
 class TanksLuaOptions {
@@ -27,7 +26,7 @@ class TanksLuaOptions {
         )
 
         try {
-            TanksLua.settingsFile.bufferedWriter().use {
+            settingsFile.bufferedWriter().use {
                 it.write(encodedOptions)
             }
         } catch (i: IOException) {
@@ -37,10 +36,10 @@ class TanksLuaOptions {
     }
 
     fun load() {
-        if (!TanksLua.settingsFile.exists()) return
+        if (!settingsFile.exists()) return
 
         val encodedOptions = try {
-            TanksLua.settingsFile.bufferedReader().use {
+            settingsFile.bufferedReader().use {
                 it.readText()
             }
         } catch (e: IOException) {
@@ -72,38 +71,6 @@ object TanksLua {
     lateinit var evalBox: EvalBox
     lateinit var luaOptionsButton: Button
     val options = TanksLuaOptions()
-
-    val tanksLuaDir = File(
-        System.getProperty("user.home").replace('\\', '/') + "/.tanks/tankslua"
-    )
-
-    val levelDir = File(tanksLuaDir.path + "/level")
-
-    val extensionDir = File(tanksLuaDir.path + "/extension")
-    val extensionsDir = File(extensionDir.path + "/extensions")
-    val extensionOptionsDir = File(extensionDir.path + "/options")
-
-    val settingsFile = File(tanksLuaDir.path + "/settings.tkv")
-
-    fun verifyDirectory(directory: File) {
-        if (!directory.isDirectory) {
-            if (directory.exists()) directory.delete()
-            directory.mkdir()
-        }
-    }
-    fun verifyFile(file: File) {
-        if (file.isDirectory) {
-            if (file.exists()) file.delete()
-        }
-    }
-
-    fun verifyDirectoryStructure() {
-        verifyDirectory(tanksLuaDir)
-        verifyDirectory(levelDir)
-        verifyDirectory(extensionDir)
-
-        verifyFile(settingsFile)
-    }
 }
 
 var lastScreen: Screen? = null
@@ -121,7 +88,7 @@ class TanksLuaExtension : Extension("TanksLua") {
             Game.screen = ScreenOptionsLua()
         }
 
-        TanksLua.verifyDirectoryStructure()
+        verifyDirectoryStructure()
 
         TanksLua.options.load()
         loadLuaExtensions()

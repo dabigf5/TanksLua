@@ -60,7 +60,7 @@ private fun tryLoadExtension(file: File) {
     // note: suffers from the same potential tar.gz problem as LevelScripts.kt
     val name = file.nameWithoutExtension
 
-    val options = File(TanksLua.extensionOptionsDir.path + "/" + name).let { optionsFile ->
+    val options = File(extensionOptionsDir.path + "/" + name).let { optionsFile ->
         if (optionsFile.exists()) return@let optionsFile.bufferedReader().use {
             it.readText()
         }
@@ -134,10 +134,9 @@ fun loadLuaExtensions() {
         return
     }
 
-    TanksLua.verifyDirectory(TanksLua.extensionDir)
-    TanksLua.verifyDirectory(TanksLua.extensionsDir)
-    TanksLua.verifyDirectory(TanksLua.extensionOptionsDir)
-    for (file in TanksLua.extensionsDir.listFiles()!!) {
+    verifyDirectoryStructure()
+
+    for (file in extensionsDir.listFiles()!!) {
         try {
             tryLoadExtension(file)
         } catch (e: LuaExtensionLoadException) {
@@ -209,15 +208,13 @@ class RealLuaExtension(
 ) : LuaExtension {
     // todo: options besides enabled
 
-    private val optionsFile = File(TanksLua.extensionOptionsDir.path + "/" + name)
+    private val optionsFile = File(extensionOptionsDir.path + "/" + name)
 
     /**
      * The caller of this method is expected to handle any [IOException]s that it may throw.
      */
     fun saveOptions() {
-        TanksLua.verifyDirectory(TanksLua.extensionDir)
-        TanksLua.verifyDirectory(TanksLua.extensionOptionsDir)
-        TanksLua.verifyFile(optionsFile)
+        verifyDirectoryStructure()
 
         optionsFile.bufferedWriter().use {
             it.write(encodeTKV(mapOf("enabled" to TKVValue(TKVType.BOOLEAN, enabled))))
