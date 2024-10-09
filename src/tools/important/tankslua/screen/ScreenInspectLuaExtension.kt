@@ -7,7 +7,7 @@ import tanks.gui.screen.Screen
 import tools.important.tankslua.LuaExtension
 import tools.important.tankslua.RealLuaExtension
 import tools.important.tankslua.gui.ToggleButton
-import tools.important.tankslua.initializeLuaState
+import tools.important.tankslua.initializeExtensionLuaState
 
 class ScreenInspectLuaExtension(val extension: LuaExtension) : Screen() {
     val backButton = Button(
@@ -30,7 +30,7 @@ class ScreenInspectLuaExtension(val extension: LuaExtension) : Screen() {
         "Enabled",
         { b ->
             (extension as RealLuaExtension).enabled = b
-            if (b && extension.luaState == null) initializeLuaState(extension)
+            if (b && extension.luaState == null) initializeExtensionLuaState(extension)
         },
         if (extension is RealLuaExtension) extension.enabled else false
     )
@@ -51,7 +51,7 @@ class ScreenInspectLuaExtension(val extension: LuaExtension) : Screen() {
         drawing.setInterfaceFontSize(titleSize)
         drawing.drawInterfaceText(centerX, drawing.interfaceSizeY * 0.2, extension.displayName)
         drawing.setInterfaceFontSize(titleSize*0.8)
-        drawing.drawInterfaceText(centerX, drawing.interfaceSizeY * 0.3, extension.name)
+        drawing.drawInterfaceText(centerX, drawing.interfaceSizeY * 0.3, extension.id)
 
         val descriptionX = centerX
         drawing.setInterfaceFontSize(titleSize*0.8)

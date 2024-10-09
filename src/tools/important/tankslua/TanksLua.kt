@@ -96,7 +96,7 @@ class TanksLuaExtension : Extension("TanksLua") {
 
     fun screenChanged(old: Screen?, new: Screen) {
         if (new is ScreenGame) {
-            tryLoadingLevelScript(new.name.replace(".tanks",""))
+            if (new.name != null) tryLoadingLevelScript(new.name.replace(".tanks",""))
         } else if (old is ScreenGame) {
             clearCurrentLevelScript()
         }
@@ -124,7 +124,7 @@ class TanksLuaExtension : Extension("TanksLua") {
             if (extension.enabled && extension.updateFunction != null) try {
                 extension.updateFunction!!.call()
             } catch (e: LuaException) {
-                Notification("Extension ${extension.name}'s update function ran into a problem: ${e.message}", NotificationType.ERR, 1000.0)
+                Notification("Extension ${extension.id}'s update function ran into a problem: ${e.message}", NotificationType.ERR, 1000.0)
                 extension.updateFunction = null
             }
         }
@@ -155,7 +155,7 @@ class TanksLuaExtension : Extension("TanksLua") {
             if (extension.enabled && extension.drawFunction != null) try {
                 extension.drawFunction!!.call()
             } catch (e: LuaException) {
-                Notification("Extension ${extension.name}'s draw function ran into a problem: ${e.message}", NotificationType.ERR)
+                Notification("Extension ${extension.id}'s draw function ran into a problem: ${e.message}", NotificationType.ERR)
                 extension.drawFunction = null
             }
         }

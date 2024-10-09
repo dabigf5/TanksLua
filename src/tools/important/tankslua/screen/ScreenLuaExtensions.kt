@@ -18,7 +18,7 @@ private fun getExtensionButtons(): ArrayList<Button> {
             0.0, 0.0, 0.0, 0.0,
             extension.displayName, "Description: ${extension.description}---" +
                     "---" +
-                    "${extension.name}---" +
+                    "${extension.id}---" +
                     if (extension is RealLuaExtension)
                         if (extension.enabled) "enabled" else "disabled"
                     else

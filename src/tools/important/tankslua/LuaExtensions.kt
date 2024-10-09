@@ -19,7 +19,7 @@ private fun loadFail(message: String, luaState: Lua? = null): Nothing {
     throw LuaExtensionLoadException(message)
 }
 
-fun initializeLuaState(extension: RealLuaExtension) {
+fun initializeExtensionLuaState(extension: RealLuaExtension) {
     val luaState = LuaJit().apply { initialize() }
 
     val source = extension.repo.readFile("extension.lua") ?: loadFail("Extension repository is missing an extension.lua!")
@@ -47,7 +47,7 @@ fun initializeLuaState(extension: RealLuaExtension) {
     try {
         loaded?.call()
     } catch (e: LuaException) {
-        loadFail("extension.lua's loaded ran into an error: ${e.message}", luaState)
+        loadFail("extension.lua's loaded function ran into an error: ${e.message}", luaState)
     }
 
     extension.luaState = luaState
@@ -56,13 +56,62 @@ fun initializeLuaState(extension: RealLuaExtension) {
     extension.drawFunction = draw
 }
 
-private fun tryLoadExtension(file: File) {
-    // note: suffers from the same potential tar.gz problem as LevelScripts.kt
-    val name = file.nameWithoutExtension
+fun nameAndAuthorToId(name: String, author: String) = "${author.replace(' ','_')}:$name"
 
-    val options = File(extensionOptionsDir.path + "/" + name).let { optionsFile ->
-        if (optionsFile.exists()) return@let optionsFile.bufferedReader().use {
-            it.readText()
+
+@Suppress("ConvertToStringTemplate")
+const val ILLEGAL_EXTENSION_NAME_CHARS = ILLEGAL_FILENAME_CHARS + " "
+
+private fun tryLoadExtension(file: File) {
+    val repo = try { openAsRepository(file) } catch (_: IllegalArgumentException) {
+        loadFail("Unable to open extension file as a repository!")
+    }
+
+    val meta = try { decodeTKV(
+        repo.readFile("meta.tkv") ?: loadFail("Extension repository is missing a meta.tkv!")
+    ) } catch (e: TKVDecodeException) {
+        loadFail("Extension's metadata failed to decode: ${e.message}")
+    }
+
+    val name = meta["name"].let {
+        if (it == null || it.type != TKVType.STRING) loadFail("Extension's metadata is missing a valid name!")
+        it.value as String
+    } .also {
+        for (ch in ILLEGAL_EXTENSION_NAME_CHARS) if (ch in it) loadFail("Extension name contains an illegal character! ('$ch')")
+    }
+
+    val author = meta["author"].let {
+        if (it == null || it.type != TKVType.STRING) loadFail("Extension's metadata is missing a valid author!")
+        it.value as String
+    } .also {
+        for (ch in ILLEGAL_EXTENSION_NAME_CHARS) if (ch in it) loadFail("Extension author contains an illegal character! ('$ch')")
+    }
+
+    val id = nameAndAuthorToId(name, author)
+    if (loadedExtensions.find { it.id == id } != null) loadFail("Conflicting ID (id $id)")
+
+    val displayName = meta["displayName"].let {
+        if (it == null || it.type != TKVType.STRING) loadFail("Extension's metadata is missing a valid displayName!")
+        it.value as String
+    }
+
+    val description = meta["description"].let {
+        if (it != null && it.type == TKVType.STRING) return@let it.value as String
+        null
+    }
+
+    val version = meta["version"].let {
+        if (it == null || it.type != TKVType.VERSION) loadFail("Extension's metadata is missing a valid version!")
+        it.value as SemanticVersion
+    }
+
+    val options = File(extensionOptionsDir.path + "/" + toLegalFilename(id)).let { optionsFile ->
+        try {
+            if (optionsFile.exists()) return@let optionsFile.bufferedReader().use {
+                it.readText()
+            }
+        } catch (_: IOException) {
+            return@let null
         }
         null
     } .let { encoded ->
@@ -81,33 +130,9 @@ private fun tryLoadExtension(file: File) {
         it.value as Boolean
     }
 
-    val repo = try { openAsRepository(file) } catch (_: IllegalArgumentException) {
-        loadFail("Unable to open extension file as a repository!")
-    }
-
-    val meta = try { decodeTKV(
-        repo.readFile("meta.tkv") ?: loadFail("Extension repository is missing a meta.tkv!")
-    ) } catch (e: TKVDecodeException) {
-        loadFail("Extension's metadata failed to decode: ${e.message}")
-    }
-
-    val displayName = meta["displayName"].let {
-        if (it == null || it.type != TKVType.STRING) loadFail("Extension's metadata is missing a valid displayname!")
-        it.value as String
-    }
-
-    val description = meta["description"].let {
-        if (it != null && it.type == TKVType.STRING) return@let it.value as String
-        null
-    }
-
-    val version = meta["version"].let {
-        if (it == null || it.type != TKVType.VERSION) loadFail("Extension's metadata is missing a valid version!")
-        it.value as SemanticVersion
-    }
-
     val extension = RealLuaExtension(
         name = name,
+        author = author,
 
         displayName = displayName,
         description = description,
@@ -119,7 +144,7 @@ private fun tryLoadExtension(file: File) {
     )
 
     if (enabled) {
-        initializeLuaState(extension)
+        initializeExtensionLuaState(extension)
     }
 
     loadedExtensions.add(extension)
@@ -140,7 +165,7 @@ fun loadLuaExtensions() {
         try {
             tryLoadExtension(file)
         } catch (e: LuaExtensionLoadException) {
-            Notification("Extension ${file.name} failed to load: ${e.message!!}", NotificationType.ERR, 500.0)
+            Notification("Extension file '${file.name}' failed to load: ${e.message!!}", NotificationType.ERR, 500.0)
         }
     }
 }
@@ -152,9 +177,14 @@ fun clearLoadedExtensions() {
 
 interface LuaExtension {
     val name: String
+    val author: String
     val displayName: String
     val description: String?
     val version: SemanticVersion
+
+    val id: String
+        get() = nameAndAuthorToId(name, author)
+
     fun whenCleared() {}
     fun whenLoaded() {}
 }
@@ -167,7 +197,9 @@ class DecoyLuaExtension : LuaExtension {
         get() = index+1
 
     override val name: String
-        get() = "decoy/$decoyNumber"
+        get() = "decoy"
+    override val author: String
+        get() = "professor_decoy"
 
     override val displayName: String
         get() = "Decoy #$decoyNumber"
@@ -176,10 +208,7 @@ class DecoyLuaExtension : LuaExtension {
     override fun whenLoaded() {}
 
     override val description: String
-        get() = "This extension is a fake decoy extension,---" +
-                "and you can tell because its name is $name.---" +
-                "The / in the name is only available to decoys---" +
-                "due to the way filesystems work."
+        get() = "This extension is a fake decoy extension."
 
     override val version: SemanticVersion = SemanticVersion(1, 0, 0)
 }
@@ -194,6 +223,8 @@ class RealLuaExtension(
      * with any of the forbidden characters on Windows, as it makes distribution more difficult.
      */
     override val name: String,
+    override val author: String,
+
     override val displayName: String,
     override val description: String?,
     override val version: SemanticVersion,
@@ -208,16 +239,17 @@ class RealLuaExtension(
 ) : LuaExtension {
     // todo: options besides enabled
 
-    private val optionsFile = File(extensionOptionsDir.path + "/" + name)
+    private val optionsFile = File(extensionOptionsDir.path + "/" + toLegalFilename(id))
 
-    /**
-     * The caller of this method is expected to handle any [IOException]s that it may throw.
-     */
     fun saveOptions() {
         verifyDirectoryStructure()
 
-        optionsFile.bufferedWriter().use {
-            it.write(encodeTKV(mapOf("enabled" to TKVValue(TKVType.BOOLEAN, enabled))))
+        try {
+            optionsFile.bufferedWriter().use {
+                it.write(encodeTKV(mapOf("enabled" to TKVValue(TKVType.BOOLEAN, enabled))))
+            }
+        } catch (e: IOException) {
+            Notification("$id failed to save options! (${e.message})",  NotificationType.ERR)
         }
     }
 
