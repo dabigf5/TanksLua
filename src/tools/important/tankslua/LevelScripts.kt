@@ -42,6 +42,8 @@ fun LuaValue.getOptionalOfType(key: String, type: Lua.LuaType): LuaValue? {
     return value
 }
 
+private const val LEVELSCRIPT_MAIN_SCRIPT_NAME = "level.lua"
+
 fun tryLoadingLevelScript(name: String) {
     verifyDirectoryStructure()
 
@@ -53,24 +55,24 @@ fun tryLoadingLevelScript(name: String) {
         loadFail("Unable to open level script file as a repository!")
     }
 
-    val mainScript = repo.readFile("level.lua") ?: loadFail("Level script does not have level.lua file!")
+    val mainScript = repo.readFile(LEVELSCRIPT_MAIN_SCRIPT_NAME) ?: loadFail("Level script does not have $LEVELSCRIPT_MAIN_SCRIPT_NAME file!")
 
     val luaState = LuaJit().apply { initialize() }
 
     try {
         luaState.load(mainScript)
     } catch (e: LuaException) {
-        loadFail("Level script failed to load: ${e.message}", luaState)
+        loadFail("level.lua failed to load: ${e.message}", luaState)
     }
 
     try {
         val results = luaState.get().call()
         if (results.size != 1) {
-            loadFail("Level script failed to return exactly one value", luaState)
+            loadFail("$LEVELSCRIPT_MAIN_SCRIPT_NAME failed to return exactly one value", luaState)
         }
         val result = results[0]
         if (result.type() != Lua.LuaType.TABLE) {
-            loadFail("Level script failed to return a table", luaState)
+            loadFail("$LEVELSCRIPT_MAIN_SCRIPT_NAME failed to return a table", luaState)
         }
 
         val loadedFunction = result.getOptionalOfType("loaded", Lua.LuaType.FUNCTION)
@@ -87,6 +89,6 @@ fun tryLoadingLevelScript(name: String) {
 
         loadedFunction?.call()
     } catch (e: LuaException) {
-        loadFail("Level script failed to run: ${e.message}", luaState)
+        loadFail("$LEVELSCRIPT_MAIN_SCRIPT_NAME failed to run: ${e.message}", luaState)
     }
 }

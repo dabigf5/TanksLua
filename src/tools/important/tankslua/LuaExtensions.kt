@@ -22,22 +22,22 @@ private fun loadFail(message: String, luaState: Lua? = null): Nothing {
 fun initializeExtensionLuaState(extension: RealLuaExtension) {
     val luaState = LuaJit().apply { initialize() }
 
-    val source = extension.repo.readFile("extension.lua") ?: loadFail("Extension repository is missing an extension.lua!")
+    val source = extension.repo.readFile(EXTENSION_MAIN_SCRIPT_NAME) ?: loadFail("Extension repository is missing an $EXTENSION_MAIN_SCRIPT_NAME!")
 
     try {
         luaState.load(source)
     } catch (e: LuaException) {
-        loadFail("extension.lua failed to load: ${e.message}", luaState)
+        loadFail("$EXTENSION_MAIN_SCRIPT_NAME failed to load: ${e.message}", luaState)
     }
 
     val result = try {
         val results = luaState.get().call()
-        if (results.size != 1) loadFail("extension.lua failed to return exactly one value", luaState)
+        if (results.size != 1) loadFail("$EXTENSION_MAIN_SCRIPT_NAME failed to return exactly one value", luaState)
         results[0]
     } catch (e: LuaException) {
-        loadFail("extension.lua failed to run: ${e.message}", luaState)
+        loadFail("$EXTENSION_MAIN_SCRIPT_NAME failed to run: ${e.message}", luaState)
     } .also {
-        if (it.type() != Lua.LuaType.TABLE) loadFail("extension.lua failed to return a table")
+        if (it.type() != Lua.LuaType.TABLE) loadFail("$EXTENSION_MAIN_SCRIPT_NAME failed to return a table")
     }
 
     val loaded = result.getOptionalOfType("loaded", Lua.LuaType.FUNCTION)
@@ -47,7 +47,7 @@ fun initializeExtensionLuaState(extension: RealLuaExtension) {
     try {
         loaded?.call()
     } catch (e: LuaException) {
-        loadFail("extension.lua's loaded function ran into an error: ${e.message}", luaState)
+        loadFail("$EXTENSION_MAIN_SCRIPT_NAME's loaded function ran into an error: ${e.message}", luaState)
     }
 
     extension.luaState = luaState
@@ -60,7 +60,9 @@ fun nameAndAuthorToId(name: String, author: String) = "${author.replace(' ','_')
 
 
 @Suppress("ConvertToStringTemplate")
-const val ILLEGAL_EXTENSION_NAME_CHARS = ILLEGAL_FILENAME_CHARS + " "
+const val ILLEGAL_EXTENSION_NAME_CHARS = ILLEGAL_FILENAME_CHARS + " -"
+private const val EXTENSION_MAIN_SCRIPT_NAME = "extension.lua"
+private const val EXTENSION_META_NAME = "meta.tkv"
 
 private fun tryLoadExtension(file: File) {
     val repo = try { openAsRepository(file) } catch (_: IllegalArgumentException) {
@@ -68,7 +70,7 @@ private fun tryLoadExtension(file: File) {
     }
 
     val meta = try { decodeTKV(
-        repo.readFile("meta.tkv") ?: loadFail("Extension repository is missing a meta.tkv!")
+        repo.readFile(EXTENSION_META_NAME) ?: loadFail("Extension repository is missing a $EXTENSION_META_NAME!")
     ) } catch (e: TKVDecodeException) {
         loadFail("Extension's metadata failed to decode: ${e.message}")
     }
