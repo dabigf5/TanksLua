@@ -38,7 +38,7 @@ class Notification(
         val width = drawing.interfaceSizeX * 0.33
         val height = drawing.interfaceSizeY * 0.15
 
-        val x = drawing.interfaceSizeX * 0.85
+        val x = drawing.interfaceSizeX * 0.84
         val y = (drawing.interfaceSizeY * 0.8) - (height+5.0) * index
 
         val textOpacity = min(
@@ -60,11 +60,11 @@ class Notification(
         drawing.setColor(255.0, 255.0, 255.0, textOpacity)
         drawing.setInterfaceFontSize(FONT_SIZE)
 
-        val lines = drawing.wrapText(text, width-5, FONT_SIZE)
         val textHeight = drawing.getStringHeight(text)
+        val lines = drawing.wrapText(text, width-20, FONT_SIZE)
 
         for ((lineNum, line) in lines.withIndex()) {
-            drawing.drawInterfaceText(x, y + (lineNum * textHeight) - ((height/2)-textHeight), line)
+            drawing.drawInterfaceText(x, y + (lineNum * textHeight) - (height/2 - textHeight), line)
         }
     }
 }
