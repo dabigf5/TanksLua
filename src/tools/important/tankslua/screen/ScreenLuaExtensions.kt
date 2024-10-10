@@ -36,6 +36,11 @@ private fun getExtensionButtons(): ArrayList<Button> {
 }
 
 class ScreenLuaExtensions : Screen() {
+    init {
+        music = "menu_options.ogg"
+        musicID = "menu"
+    }
+
     val extensions = ButtonList(
         getExtensionButtons(),
         0,

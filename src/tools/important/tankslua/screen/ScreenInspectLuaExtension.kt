@@ -10,6 +10,11 @@ import tools.important.tankslua.gui.ToggleButton
 import tools.important.tankslua.initializeExtensionLuaState
 
 class ScreenInspectLuaExtension(val extension: LuaExtension) : Screen() {
+    init {
+        music = "menu_options.ogg"
+        musicID = "menu"
+    }
+
     val backButton = Button(
         centerX,
         centerY + objYSpace * 5.0,

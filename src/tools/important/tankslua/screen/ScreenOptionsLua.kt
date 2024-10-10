@@ -12,6 +12,11 @@ import tools.important.tankslua.tanksLuaDir
 import tools.important.tankslua.verifyDirectoryStructure
 
 class ScreenOptionsLua : Screen() {
+    init {
+        music = "menu_options.ogg"
+        musicID = "menu"
+    }
+
     val backButton = Button(
         centerX,
         centerY + objYSpace * 3.5,
@@ -68,11 +73,6 @@ class ScreenOptionsLua : Screen() {
         imageSizeX = imgsize
         imageSizeY = imgsize
         imageXOffset = 145.0 * sizeX / 350.0
-    }
-
-    init {
-        music = "menu_options.ogg"
-        musicID = "menu"
     }
 
     override fun update() {
