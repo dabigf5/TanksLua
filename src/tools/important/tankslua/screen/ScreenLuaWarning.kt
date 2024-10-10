@@ -1,5 +1,6 @@
 package tools.important.tankslua.screen
 
+import org.lwjgl.glfw.GLFW
 import tanks.Drawing
 import tanks.Game
 import tanks.gui.Button
@@ -9,29 +10,26 @@ import tools.important.tankslua.TanksLua
 import kotlin.system.exitProcess
 
 class ScreenLuaWarning : Screen() {
-    val proceedButton = Button(
+    val proceeding: Boolean
+        get() = Game.game.window.validPressedKeys.contains(GLFW.GLFW_KEY_LEFT_SHIFT)
+
+    val button = Button(
         centerX,
         centerY + objYSpace * 4,
         objWidth,
         objHeight,
-        "Proceed"
+        ""
     ) {
-        TanksLua.options.warningSeen = true
-        TanksLua.options.save()
-        Game.screen = ScreenTitle()
+        if (proceeding){
+            TanksLua.options.warningSeen = true
+            TanksLua.options.save()
+            Game.screen = ScreenTitle()
+        } else exitProcess(0)
     }
 
-    val exitButton = Button(
-        centerX,
-        centerY + objYSpace * 5.5,
-        objWidth,
-        objHeight,
-        "Exit"
-    ) { exitProcess(0) }
-
     override fun update() {
-        proceedButton.update()
-        exitButton.update()
+        button.setText(if (proceeding) "Proceed" else "Exit")
+        button.update()
     }
 
     override fun draw() {
@@ -66,17 +64,16 @@ class ScreenLuaWarning : Screen() {
             "If you acknowledge the risk and wish to proceed,"
         )
         drawing.drawInterfaceText(centerX, drawing.interfaceSizeY/2 + titleSize,
-            "you can click the proceed button below to proceed."
+            "you can hold down left shift and click the proceed button."
         )
 
         drawing.drawInterfaceText(centerX, drawing.interfaceSizeY/2 + titleSize*3,
             "If you do not wish to proceed,"
         )
         drawing.drawInterfaceText(centerX, drawing.interfaceSizeY/2 + titleSize*4,
-            "you can click the exit button below to exit the game."
+            "you can click the exit button to exit the game."
         )
 
-        proceedButton.draw()
-        exitButton.draw()
+        button.draw()
     }
 }

@@ -119,7 +119,6 @@ class TanksLuaExtension : Extension("TanksLua") {
     override fun update() {
         if (!TanksLua.options.warningSeen && Game.screen !is ScreenLuaWarning) {
             Game.screen = ScreenLuaWarning()
-            return
         }
 
         if (TanksLua.options.evalBoxEnabled) TanksLua.evalBox.update()
