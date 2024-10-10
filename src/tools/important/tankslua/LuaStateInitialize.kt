@@ -3,6 +3,8 @@ package tools.important.tankslua
 import party.iroiro.luajava.JFunction
 import party.iroiro.luajava.Lua
 import party.iroiro.luajava.LuaException
+import tanks.Game
+import tanks.ModAPI
 import tools.important.tankslua.gui.Notification
 import tools.important.tankslua.gui.NotificationType
 
@@ -28,23 +30,32 @@ fun Lua.initialize() {
 
 fun loadTanksLib(luaState: Lua) {
     luaState.createTable(0, 0)
-    luaState.get().let { tanksLib ->
-        tanksLib.set("notify", JFunction(fun(state): Int {
-            val argCount = state.top
+    val tanksLib = luaState.get()
 
-            val message: String = if (argCount >= 1) {
-                state.toString(1) ?: luaError("Message is wrong type!")
-            } else luaError("Not enough arguments!")
+    tanksLib.set("notify", JFunction(fun(state): Int {
+        val argCount = state.top
 
-            val duration: Double? = if (argCount >= 2) {
-                if (!state.isNumber(2)) luaError("Duration is wrong type!")
-                state.toNumber(2)
-            } else null
+        val message: String = if (argCount >= 1) {
+            state.toString(1) ?: luaError("Message is wrong type!")
+        } else luaError("Not enough arguments!")
 
-            Notification(message, NotificationType.INFO, duration ?: 200.0)
-            return 0
-        }))
+        val duration: Double? = if (argCount >= 2) {
+            if (!state.isNumber(2)) luaError("Duration is wrong type!")
+            state.toNumber(2)
+        } else null
 
-        luaState.set("tanks", tanksLib)
-    }
+        Notification(message, NotificationType.INFO, duration ?: 200.0)
+        return 0
+    }))
+
+    tanksLib.set("version", Game.version)
+
+    tanksLib.set("isModApi", try {
+        ModAPI::class.java.getDeclaredField("version")
+        true
+    } catch (_: NoSuchFieldException) {
+        false
+    })
+
+    luaState.set("tanks", tanksLib)
 }
