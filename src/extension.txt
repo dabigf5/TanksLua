@@ -1,1 +1,1 @@
-tools.important.tankslua.TanksLua
+tools.important.tankslua.TanksLuaExtension
