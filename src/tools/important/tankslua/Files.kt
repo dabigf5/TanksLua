@@ -71,7 +71,7 @@ fun verifyDirectoryStructure() {
 }
 
 val tanksLuaDir = File(
-    System.getProperty("user.home").replace('\\', '/') + "/.tanks/tankslua"
+    System.getProperty("user.home") + "/.tanks/tankslua"
 )
 
 val levelDir = File(tanksLuaDir.path + "/level")
