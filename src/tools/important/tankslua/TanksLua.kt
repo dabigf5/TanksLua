@@ -8,6 +8,7 @@ import tanks.Panel
 import tanks.extension.Extension
 import tanks.gui.Button
 import tanks.gui.screen.Screen
+import tanks.gui.screen.ScreenCrashed
 import tanks.gui.screen.ScreenGame
 import tanks.gui.screen.ScreenOptions
 import tools.important.tankslua.gui.*
@@ -126,7 +127,7 @@ class TanksLuaExtension : Extension("TanksLua") {
     }
 
     override fun update() {
-        if (!TanksLua.options.warningSeen && Game.screen !is ScreenLuaWarning) {
+        if (!TanksLua.options.warningSeen && Game.screen !is ScreenLuaWarning && Game.screen !is ScreenCrashed) {
             Game.screen = ScreenLuaWarning()
         }
 
