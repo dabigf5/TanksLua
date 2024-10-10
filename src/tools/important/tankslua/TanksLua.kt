@@ -109,8 +109,13 @@ class TanksLuaExtension : Extension("TanksLua") {
 
     fun screenChanged(old: Screen?, new: Screen) {
         if (new is ScreenGame) {
-            if (TanksLua.options.levelScriptsEnabled && new.name != null)
-                tryLoadingLevelScript(new.name.replace(".tanks",""))
+            if (TanksLua.options.levelScriptsEnabled && new.name != null) {
+                try {
+                    tryLoadingLevelScript(new.name.replace(".tanks",""))
+                } catch (e: LevelScriptLoadException) {
+                    Notification("Level script failed to load: ${e.message}", NotificationType.ERR)
+                }
+            }
         } else if (old is ScreenGame) {
             clearCurrentLevelScript()
         }
