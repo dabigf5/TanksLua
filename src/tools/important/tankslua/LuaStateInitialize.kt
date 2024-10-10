@@ -1,10 +1,6 @@
 package tools.important.tankslua
 
 import party.iroiro.luajava.Lua
-import party.iroiro.luajava.LuaException
-
-fun luaError(message: String): Nothing = throw LuaException(LuaException.LuaError.RUNTIME, message)
-
 
 /*
 this function does not nil out the `io` and `os` libraries as it did in previous versions;
