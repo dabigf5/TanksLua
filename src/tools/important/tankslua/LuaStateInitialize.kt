@@ -22,3 +22,7 @@ fun Lua.initialize() {
 
     openTanksLib(this)
 }
+
+fun openTanksLib(luaState: Lua) {
+    luaState.run(TanksLua.extension.getFileText("/lua/tankslib.lua")!!)
+}
