@@ -3,6 +3,7 @@ tanks = {}
 local Notification = java.import("tools.important.tankslua.gui.Notification")
 local NotificationType = java.import("tools.important.tankslua.gui.NotificationType")
 local Drawing = java.import("tanks.Drawing")
+local Game = java.import("tanks.Game")
 
 local function ensureType(name, typename, v)
     local vtype = type(v)
@@ -15,6 +16,13 @@ function tanks.notify(message, duration)
     ensureType("message", "string", message)
     Notification(message, NotificationType.INFO, duration or 200)
 end
+
+
+tanks.isModApi = pcall(function()
+    java.import("tanks.ModAPI"):getDeclaredField("version")
+end)
+
+tanks.version = Game.version
 
 tanks.drawing = {}
 
