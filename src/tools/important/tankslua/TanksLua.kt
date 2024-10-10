@@ -11,17 +11,20 @@ import tanks.gui.screen.Screen
 import tanks.gui.screen.ScreenGame
 import tanks.gui.screen.ScreenOptions
 import tools.important.tankslua.gui.*
+import tools.important.tankslua.screen.ScreenLuaWarning
 import tools.important.tankslua.screen.ScreenOptionsLua
 import tools.important.tankslua.tkv.*
 import java.io.IOException
 
 class TanksLuaOptions {
+    var warningSeen: Boolean = false
     var evalBoxEnabled: Boolean = false
     var levelScriptsEnabled: Boolean = false
 
     fun save() {
         val encodedOptions = encodeTKV(
             mapOf(
+                "warningSeen" to TKVValue(TKVType.BOOLEAN, warningSeen),
                 "evalBoxEnabled" to TKVValue(TKVType.BOOLEAN, evalBoxEnabled),
                 "levelScriptsEnabled" to TKVValue(TKVType.BOOLEAN, levelScriptsEnabled)
             )
@@ -58,6 +61,10 @@ class TanksLuaOptions {
 
         for ((name, value) in decodedOptions) {
             when (name) {
+                "warningSeen" -> {
+                    if (value.type != TKVType.BOOLEAN) continue
+                    warningSeen = value.value as Boolean
+                }
                 "evalBoxEnabled" -> {
                     if (value.type != TKVType.BOOLEAN) continue
                     evalBoxEnabled = value.value as Boolean
@@ -97,7 +104,7 @@ class TanksLuaExtension : Extension("TanksLua") {
         verifyDirectoryStructure()
 
         TanksLua.options.load()
-        loadLuaExtensions()
+        if (TanksLua.options.warningSeen) loadLuaExtensions()
     }
 
     fun screenChanged(old: Screen?, new: Screen) {
@@ -110,6 +117,11 @@ class TanksLuaExtension : Extension("TanksLua") {
     }
 
     override fun update() {
+        if (!TanksLua.options.warningSeen && Game.screen !is ScreenLuaWarning) {
+            Game.screen = ScreenLuaWarning()
+            return
+        }
+
         if (TanksLua.options.evalBoxEnabled) TanksLua.evalBox.update()
         val screen = Game.screen
 
