@@ -14,6 +14,8 @@ class ScreenLuaWarning : Screen() {
     init {
         music = "ready_music_3.ogg"
         Panel.forceRefreshMusic = true
+
+        TanksLua.options.evalBoxEnabled = false
     }
 
     val canProceed: Boolean
