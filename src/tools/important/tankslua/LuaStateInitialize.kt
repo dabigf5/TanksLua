@@ -21,14 +21,13 @@ to (quite painfully) use Java's io and os-related facilities
 fun Lua.initialize() {
     openLibraries()
 
-    load("io.stdout:setvbuf'no'")
-    get().call()
+    run("io.stdout:setvbuf'no'")
 
     loadTanksLib(this)
 }
 
 fun loadTanksLib(luaState: Lua) {
-    luaState.createTable(0,0)
+    luaState.createTable(0, 0)
     luaState.get().let { tanksLib ->
         tanksLib.set("notify", JFunction(fun(state): Int {
             val argCount = state.top
@@ -38,6 +37,7 @@ fun loadTanksLib(luaState: Lua) {
             } else luaError("Not enough arguments!")
 
             val duration: Double? = if (argCount >= 2) {
+                if (!state.isNumber(2)) luaError("Duration is wrong type!")
                 state.toNumber(2)
             } else null
 
