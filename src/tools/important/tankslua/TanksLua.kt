@@ -82,6 +82,7 @@ class TanksLuaOptions {
 object TanksLua {
     const val VERSION = "TanksLua 0.4.0"
 
+    lateinit var extension: TanksLuaExtension
     lateinit var evalBox: EvalBox
     lateinit var luaOptionsButton: Button
     val options = TanksLuaOptions()
@@ -89,8 +90,15 @@ object TanksLua {
 
 var lastScreen: Screen? = null
 
+fun Extension.getFileText(path: String): String? {
+    val extClass = this::class.java
+
+    return extClass.getResource(path)?.readText()
+}
+
 class TanksLuaExtension : Extension("TanksLua") {
     override fun setUp() {
+        TanksLua.extension = this
         TanksLua.evalBox = EvalBox()
         TanksLua.luaOptionsButton = Button(
             Drawing.drawing.interfaceSizeX * 0.5,
@@ -170,7 +178,7 @@ class TanksLuaExtension : Extension("TanksLua") {
         val levelScript = currentLevelScript
         if (levelScript != null) {
             try {
-                levelScript.drawFunction?.call(Panel.frameFrequency)
+                levelScript.drawFunction?.call()
             } catch (e: LuaException) {
                 Notification("The level script ran into an issue drawing: ${e.message}", NotificationType.ERR)
                 clearCurrentLevelScript()
