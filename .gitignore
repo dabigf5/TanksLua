@@ -3,3 +3,5 @@
 /out/
 /build/
 /.gradle/
+
+hs_err_*.log
