@@ -8,6 +8,8 @@ import tanks.gui.Button
 import tanks.gui.screen.Screen
 import tanks.gui.screen.ScreenTitle
 import tools.important.tankslua.TanksLua
+import tools.important.tankslua.clearLoadedExtensions
+import tools.important.tankslua.loadLuaExtensions
 import kotlin.system.exitProcess
 
 class ScreenLuaWarning : Screen() {
@@ -33,6 +35,9 @@ class ScreenLuaWarning : Screen() {
         TanksLua.options.warningSeen = true
         TanksLua.options.save()
         Game.screen = ScreenTitle()
+
+        clearLoadedExtensions() // just in case
+        loadLuaExtensions()
     }
 
     val exitButton = Button(
@@ -64,7 +69,7 @@ class ScreenLuaWarning : Screen() {
         drawing.setInterfaceFontSize(titleSize * 0.8)
         drawing.drawInterfaceText(
             centerX, drawing.interfaceSizeY * 0.3,
-            "This extension runs unsandboxed Lua code!"
+            "TanksLua runs unsandboxed Lua code!"
         )
         drawing.drawInterfaceText(
             centerX, drawing.interfaceSizeY * 0.3 + titleSize,
