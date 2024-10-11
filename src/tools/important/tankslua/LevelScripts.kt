@@ -79,6 +79,12 @@ fun tryLoadingLevelScript(name: String) {
         val updateFunction = result.getOptionalOfType("update", Lua.LuaType.FUNCTION)
         val drawFunction = result.getOptionalOfType("draw", Lua.LuaType.FUNCTION)
 
+        try {
+            loadedFunction?.call()
+        } catch (e: LuaException) {
+            loadFail("$LEVELSCRIPT_MAIN_SCRIPT_NAME's load function ran into an issue: ${e.message}", luaState)
+        }
+
         currentLevelScript = LevelScript(
             repo,
             luaState,
@@ -86,8 +92,6 @@ fun tryLoadingLevelScript(name: String) {
             updateFunction,
             drawFunction
         )
-
-        loadedFunction?.call()
     } catch (e: LuaException) {
         loadFail("$LEVELSCRIPT_MAIN_SCRIPT_NAME failed to run: ${e.message}", luaState)
     }
