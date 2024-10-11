@@ -14,7 +14,7 @@ to (quite painfully) use Java's io and os-related facilities
 /**
  * Initialize a Lua state that TanksLua user code will be running on.
  */
-fun Lua.initialize(requireRepo: FileRepository? = null) {
+fun Lua.initialize(repo: FileRepository? = null) {
     openLibraries()
 
     run("io.stdout:setvbuf'no'")
@@ -23,13 +23,40 @@ fun Lua.initialize(requireRepo: FileRepository? = null) {
 
     val loaders = get("package").get("loaders")
     loaders.clear()
-    if (requireRepo != null) {
-        setupRequire(loaders, requireRepo)
+    if (repo != null) {
+        setupRequire(loaders, repo)
+        setupReadFileFunction(this, repo)
     }
 }
 
 fun openTanksLib(luaState: Lua) {
     luaState.run(TanksLua.extension.getFileText("/lua/tankslib.lua")!!)
+}
+
+fun setupReadFileFunction(luaState: Lua, repo: FileRepository) {
+    luaState.set("readFile", JFunction reader@{ state ->
+        if (state.top != 1) {
+            luaState.error("Expected string")
+            return@reader 0
+        }
+
+        val arg = state.get()
+        if (arg.type() != Lua.LuaType.STRING) {
+            luaState.error("Expected string")
+            return@reader 0
+        }
+
+        val filepath = arg.toString()
+
+        val content = repo.readFile(filepath)
+        if (content == null) {
+            luaState.pushNil()
+            return@reader 1
+        }
+
+        luaState.push(content)
+        return@reader 1
+    })
 }
 
 fun setupRequire(loaders: LuaValue, requireRepo: FileRepository) {
@@ -45,18 +72,18 @@ fun setupRequire(loaders: LuaValue, requireRepo: FileRepository) {
             return@loader 1
         }
 
-        val fileToSearch = "$arg.lua"
-        val content = requireRepo.readFile(fileToSearch)
+        val searchPath = "${arg.toString().replace('.','/')}.lua"
+        val content = requireRepo.readFile(searchPath)
 
         if (content == null) {
-            state.push("No $fileToSearch in repository")
+            state.push("No $searchPath in repository")
             return@loader 1
         }
 
         try {
             state.load(content)
         } catch (e: LuaException) {
-            state.push("$fileToSearch ran into an error loading: ${e.message}")
+            state.push("$searchPath ran into an error loading: ${e.message}")
             return@loader 1
         }
         return@loader 1 // loaded function is on top of the stack
