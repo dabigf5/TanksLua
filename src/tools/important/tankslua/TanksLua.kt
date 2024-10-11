@@ -150,7 +150,7 @@ class TanksLuaExtension : Extension("TanksLua") {
             try {
                 levelScript.updateFunction?.call(Panel.frameFrequency)
             } catch (e: LuaException) {
-                Notification("The level script ran into an issue updating: ${e.message}", NotificationType.ERR)
+                Notification("The level script ran into an issue while updating: ${e.message}", NotificationType.ERR)
                 clearCurrentLevelScript()
             }
         }
@@ -160,7 +160,7 @@ class TanksLuaExtension : Extension("TanksLua") {
             if (extension.enabled && extension.updateFunction != null) try {
                 extension.updateFunction!!.call()
             } catch (e: LuaException) {
-                Notification("Extension ${extension.id}'s update function ran into a problem: ${e.message}", NotificationType.ERR, 1000.0)
+                Notification("Extension ${extension.id} ran into an issue while updating: ${e.message}", NotificationType.ERR, 1000.0)
                 extension.updateFunction = null
             }
         }
@@ -191,7 +191,7 @@ class TanksLuaExtension : Extension("TanksLua") {
             if (extension.enabled && extension.drawFunction != null) try {
                 extension.drawFunction!!.call()
             } catch (e: LuaException) {
-                Notification("Extension ${extension.id}'s draw function ran into a problem: ${e.message}", NotificationType.ERR)
+                Notification("Extension ${extension.id} ran into an issue drawing: ${e.message}", NotificationType.ERR)
                 extension.drawFunction = null
             }
         }

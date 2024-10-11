@@ -57,7 +57,7 @@ fun tryLoadingLevelScript(name: String) {
 
     val mainScript = repo.readFile(LEVELSCRIPT_MAIN_SCRIPT_NAME) ?: loadFail("Level script does not have $LEVELSCRIPT_MAIN_SCRIPT_NAME file!")
 
-    val luaState = LuaJit().apply { initialize() }
+    val luaState = LuaJit().apply { initialize(repo) }
 
     try {
         luaState.load(mainScript)

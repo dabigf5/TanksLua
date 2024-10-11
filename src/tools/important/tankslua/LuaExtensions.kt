@@ -20,7 +20,7 @@ private fun loadFail(message: String, luaState: Lua? = null): Nothing {
 }
 
 fun initializeExtensionLuaState(extension: RealLuaExtension) {
-    val luaState = LuaJit().apply { initialize() }
+    val luaState = LuaJit().apply { initialize(extension.repo) }
 
     val source = extension.repo.readFile(EXTENSION_MAIN_SCRIPT_NAME) ?: loadFail("Extension repository is missing an $EXTENSION_MAIN_SCRIPT_NAME!")
 
