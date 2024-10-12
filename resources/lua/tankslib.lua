@@ -10,12 +10,97 @@ function tanks.notify(message, duration)
     Notification(message, NotificationType.INFO, duration or 200)
 end
 
+function tanks.playSound(sound, pitch)
+    ensureType("sound", "string", sound)
+
+    Drawing.drawing:playSound(sound, pitch or 1)
+end
+
 
 tanks.isModApi = pcall(function()
     java.import("tanks.ModAPI"):getDeclaredField("version")
 end)
 
 tanks.version = Game.version
+
+tanks.game = {}
+
+function tanks.game.distance(a, b)
+    return math.sqrt((a.posX - b.posX)^2 + (a.posY - b.posY)^2)
+end
+
+function tanks.game.distanceLt(a, b, x)
+    ensureType("x", "number", x)
+
+    return (a.posX - b.posX)^2 + (a.posY - b.posY)^2 < x^2
+end
+function tanks.game.distanceLte(a, b, x)
+    ensureType("x", "number", x)
+
+    return (a.posX - b.posX)^2 + (a.posY - b.posY)^2 <= x^2
+end
+function tanks.game.distanceGt(a, b, x)
+    ensureType("x", "number", x)
+
+    return (a.posX - b.posX)^2 + (a.posY - b.posY)^2 > x^2
+end
+function tanks.game.distanceGte(a, b, x)
+    ensureType("x", "number", x)
+
+    return (a.posX - b.posX)^2 + (a.posY - b.posY)^2 >= x^2
+end
+
+function tanks.game.getMovables()
+    return java.luaify(Game.movables)
+end
+
+function tanks.game.getPlayerTank()
+    return Game.playerTank
+end
+
+function tanks.game.playing()
+    return
+        java.import("tanks.gui.screen.ScreenGame").class:isInstance(Game.screen)
+        and not Game.screen.paused
+        and not Game.playerTank.destroy
+end
+
+function tanks.game.allied(a, b)
+    return a.team ~= nil and b.team ~= nil and a.team == b.team
+end
+
+tanks.input = {}
+
+tanks.input.codes = {}
+for _, field in pairs(
+    java.luaify(
+        java.import("basewindow.InputCodes").class:getFields()
+    )
+) do
+    tanks.input.codes[field:getName()] = field:get(nil)
+end
+
+function tanks.input.keyHeld(keyToCheck)
+    ensureType("keyToCheck", "number", keyToCheck)
+
+    local keys = java.luaify(Game.game.window.validPressedKeys)
+    for _, key in pairs(keys) do
+        if key == keyToCheck then return true end
+    end
+    return false
+end
+
+function tanks.input.mouseButtonHeld(buttonToCheck)
+    ensureType("buttonToCheck", "number", buttonToCheck)
+
+    local buttons = java.luaify(Game.game.window.validPressedButtons)
+    for _, button in pairs(buttons) do
+        if button == buttonToCheck then return true end
+    end
+    return false
+end
+
+
 
 tanks.drawing = {}
 
