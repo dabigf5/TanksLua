@@ -5,13 +5,6 @@ local NotificationType = java.import("tools.important.tankslua.gui.NotificationT
 local Drawing = java.import("tanks.Drawing")
 local Game = java.import("tanks.Game")
 
-local function ensureType(name, typename, v)
-    local vtype = type(v)
-    if vtype ~= typename then
-        error(name.." is wrong type (expected "..typename..", got "..vtype..")", 0)
-    end
-end
-
 function tanks.notify(message, duration)
     ensureType("message", "string", message)
     Notification(message, NotificationType.INFO, duration or 200)

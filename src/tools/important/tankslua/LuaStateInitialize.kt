@@ -2,8 +2,6 @@ package tools.important.tankslua
 
 import party.iroiro.luajava.JFunction
 import party.iroiro.luajava.Lua
-import party.iroiro.luajava.LuaException
-import party.iroiro.luajava.value.LuaValue
 
 /*
 this function does not nil out the `io` and `os` libraries as it did in previous versions;
@@ -19,18 +17,18 @@ fun Lua.initialize(repo: FileRepository? = null) {
 
     run("io.stdout:setvbuf'no'")
 
-    openTanksLib(this)
+    runLuaFile("/lua/ensureType.lua")
 
-    val loaders = get("package").get("loaders")
-    loaders.clear()
     if (repo != null) {
-        setupRequire(loaders, repo)
         setupReadFileFunction(this, repo)
     }
+    runLuaFile("/lua/initializeLoaders.lua")
+
+    runLuaFile("/lua/tankslib.lua")
 }
 
-fun openTanksLib(luaState: Lua) {
-    luaState.run(TanksLua.extension.getFileText("/lua/tankslib.lua")!!)
+fun Lua.runLuaFile(path: String) {
+    run(TanksLua.extension.getFileText(path)!!)
 }
 
 fun setupReadFileFunction(luaState: Lua, repo: FileRepository) {
@@ -56,36 +54,5 @@ fun setupReadFileFunction(luaState: Lua, repo: FileRepository) {
 
         luaState.push(content)
         return@reader 1
-    })
-}
-
-fun setupRequire(loaders: LuaValue, requireRepo: FileRepository) {
-    loaders.set(1, JFunction loader@{ state ->
-        if (state.top != 1) {
-            state.push("Expected string")
-            return@loader 1
-        }
-
-        val arg = state.get()
-        if (arg.type() != Lua.LuaType.STRING) {
-            state.push("Expected string")
-            return@loader 1
-        }
-
-        val searchPath = "${arg.toString().replace('.','/')}.lua"
-        val content = requireRepo.readFile(searchPath)
-
-        if (content == null) {
-            state.push("No $searchPath in repository")
-            return@loader 1
-        }
-
-        try {
-            state.load(content)
-        } catch (e: LuaException) {
-            state.push("$searchPath ran into an error loading: ${e.message}")
-            return@loader 1
-        }
-        return@loader 1 // loaded function is on top of the stack
     })
 }
