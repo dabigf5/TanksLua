@@ -41,6 +41,7 @@ function tanks.game.getPlayerTank()
     return Game.playerTank
 end
 
+
 function tanks.game.playing()
     return
         java.import("tanks.gui.screen.ScreenGame").class:isInstance(Game.screen)
@@ -154,6 +155,7 @@ function tanks.drawing.text(x, y, text, forInterface)
 
     if forInterface then
         Drawing.drawing:drawInterfaceText(x, y, text)
+        return
     end
 
     Drawing.drawing:drawText(x, y, text)
