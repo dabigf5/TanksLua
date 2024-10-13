@@ -55,11 +55,22 @@ fun initializeExtensionLuaState(extension: RealLuaExtension) {
     extension.drawFunction = draw
 }
 
-fun nameAndAuthorToId(name: String, author: String) = "${author.replace(' ','_')}:$name"
-
+fun nameAndAuthorToId(name: String, author: String) = "$author.$name"
+fun getOptionsFileFromId(id: String) = File(extensionOptionsDir.path + '/' + id + ".tkv")
 
 @Suppress("ConvertToStringTemplate")
-const val ILLEGAL_EXTENSION_NAME_CHARS = ILLEGAL_FILENAME_CHARS + " -"
+/**
+ * A string containing all names not allowed in "internal" extension metadata entries.
+ * This refers to components of the extension's ID, including the `name` (not `displayName`), and `author`.
+ */
+const val ILLEGAL_INTERNAL_EXTENSION_CHARS = ILLEGAL_FILENAME_CHARS + " ."
+
+fun String.containsAnyCharsIn(other: String): Boolean {
+    for (ch in other) if (ch in this) return true
+
+    return false
+}
+
 private const val EXTENSION_MAIN_SCRIPT_NAME = "extension.lua"
 private const val EXTENSION_META_NAME = "meta.tkv"
 
@@ -78,14 +89,14 @@ private fun tryLoadExtension(file: File) {
         if (it == null || it.type != TKVType.STRING) loadFail("Extension's metadata is missing a valid name!")
         it.value as String
     } .also {
-        for (ch in ILLEGAL_EXTENSION_NAME_CHARS) if (ch in it) loadFail("Extension name contains an illegal character! ('$ch')")
+        if (it.containsAnyCharsIn(ILLEGAL_INTERNAL_EXTENSION_CHARS)) loadFail("Extension name contains an illegal character!")
     }
 
     val author = meta["author"].let {
         if (it == null || it.type != TKVType.STRING) loadFail("Extension's metadata is missing a valid author!")
         it.value as String
     } .also {
-        for (ch in ILLEGAL_EXTENSION_NAME_CHARS) if (ch in it) loadFail("Extension author contains an illegal character! ('$ch')")
+        if (it.containsAnyCharsIn(ILLEGAL_INTERNAL_EXTENSION_CHARS)) loadFail("Extension author contains an illegal character!")
     }
 
     val id = nameAndAuthorToId(name, author)
@@ -106,7 +117,7 @@ private fun tryLoadExtension(file: File) {
         it.value as SemanticVersion
     }
 
-    val options = File(extensionOptionsDir.path + "/" + toLegalFilename(id)).let { optionsFile ->
+    val options = getOptionsFileFromId(id).let { optionsFile ->
         try {
             if (optionsFile.exists()) return@let optionsFile.bufferedReader().use {
                 it.readText()
@@ -241,7 +252,7 @@ class RealLuaExtension(
 ) : LuaExtension {
     // todo: options besides enabled
 
-    private val optionsFile = File(extensionOptionsDir.path + "/" + toLegalFilename(id))
+    private val optionsFile = getOptionsFileFromId(id)
 
     fun saveOptions() {
         verifyDirectoryStructure()
