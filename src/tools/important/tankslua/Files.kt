@@ -1,4 +1,5 @@
 package tools.important.tankslua
+import tanks.extension.Extension
 import tools.important.tankslua.gui.Notification
 import tools.important.tankslua.gui.NotificationType
 import java.io.File
@@ -21,6 +22,12 @@ fun toLegalFilename(filename: String): String {
         if (ch in ILLEGAL_FILENAME_CHARS) mutableFilename[i] = '-'
     }
     return mutableFilename.toString()
+}
+
+fun Extension.getFileText(path: String): String? {
+    val extClass = this::class.java
+
+    return extClass.getResource(path)?.readText()
 }
 
 fun openFileManagerTo(file: File) {

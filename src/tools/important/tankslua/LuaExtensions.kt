@@ -10,7 +10,6 @@ import tools.important.tankslua.tkv.*
 import java.io.File
 import java.io.IOException
 
-private const val USE_DECOYS = false
 val loadedExtensions: MutableList<LuaExtension> = mutableListOf()
 
 class LuaExtensionLoadException(message: String) : Exception(message)
@@ -152,6 +151,7 @@ private fun tryLoadExtension(file: File) {
     loadedExtensions.add(extension)
 }
 
+private const val USE_DECOYS = false
 fun loadLuaExtensions() {
     if (USE_DECOYS) {
         repeat(100) {

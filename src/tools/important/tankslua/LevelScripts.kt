@@ -22,9 +22,9 @@ fun clearCurrentLevelScript() {
 class LevelScript(
     val repo: FileRepository,
     val luaState: Lua,
-    val loadedFunction: LuaValue?,
-    val updateFunction: LuaValue?,
-    val drawFunction: LuaValue?
+    var loadedFunction: LuaValue?,
+    var updateFunction: LuaValue?,
+    var drawFunction: LuaValue?
 )
 
 class LevelScriptLoadException(message: String) : Exception(message)
