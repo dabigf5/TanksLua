@@ -26,28 +26,11 @@ tanks.version = Game.version
 tanks.game = {}
 
 function tanks.game.distance(a, b)
-    return math.sqrt((a.posX - b.posX)^2 + (a.posY - b.posY)^2)
+    return math.sqrt(tanks.game.sqDistance(a, b))
 end
 
-function tanks.game.distanceLt(a, b, x)
-    ensureType("x", "number", x)
-
-    return (a.posX - b.posX)^2 + (a.posY - b.posY)^2 < x^2
-end
-function tanks.game.distanceLte(a, b, x)
-    ensureType("x", "number", x)
-
-    return (a.posX - b.posX)^2 + (a.posY - b.posY)^2 <= x^2
-end
-function tanks.game.distanceGt(a, b, x)
-    ensureType("x", "number", x)
-
-    return (a.posX - b.posX)^2 + (a.posY - b.posY)^2 > x^2
-end
-function tanks.game.distanceGte(a, b, x)
-    ensureType("x", "number", x)
-
-    return (a.posX - b.posX)^2 + (a.posY - b.posY)^2 >= x^2
+function tanks.game.sqDistance(a, b)
+    return (a.posX - b.posX)^2 + (a.posY - b.posY)^2
 end
 
 function tanks.game.getMovables()
@@ -62,6 +45,7 @@ function tanks.game.playing()
     return
         java.import("tanks.gui.screen.ScreenGame").class:isInstance(Game.screen)
         and not Game.screen.paused
+        and Game.screen.playing
         and not Game.playerTank.destroy
 end
 
