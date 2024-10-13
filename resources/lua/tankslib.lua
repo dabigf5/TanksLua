@@ -170,3 +170,14 @@ function tanks.drawing.size(forInterface)
 
     return Drawing.drawing.sizeX, Drawing.drawing.sizeY
 end
+
+
+tanks.multiplayer = {}
+
+function tanks.multiplayer.isServer()
+    return java.import("tanks.gui.screen.ScreenPartyHost").isServer
+end
+
+function tanks.multiplayer.isClient()
+    return java.import("tanks.gui.screen.ScreenPartyLobby").isClient
+end
