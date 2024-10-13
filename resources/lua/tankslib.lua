@@ -25,6 +25,8 @@ tanks.version = Game.version
 
 tanks.game = {}
 
+tanks.game.tileSize = Game.tile_size
+
 function tanks.game.distance(a, b)
     return math.sqrt(tanks.game.sqDistance(a, b))
 end
