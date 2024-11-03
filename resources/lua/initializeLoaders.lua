@@ -7,7 +7,6 @@ end
 if not readFile then return end
 
 loaders[1] = function(s)
-    ensureType("s", "string", s)
     local searchPath = s:gsub("%.", "/")..".lua"
 
     local content = readFile(searchPath)

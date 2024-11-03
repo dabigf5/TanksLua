@@ -17,13 +17,11 @@ fun Lua.initialize(repo: FileRepository? = null) {
 
     run("io.stdout:setvbuf'no'")
 
-    runLuaFileInJar("/lua/ensureType.lua")
-
     if (repo != null) {
         setupReadFileFunction(this, repo)
     }
-    runLuaFileInJar("/lua/initializeLoaders.lua")
 
+    runLuaFileInJar("/lua/initializeLoaders.lua")
     runLuaFileInJar("/lua/tankslib.lua")
 }
 

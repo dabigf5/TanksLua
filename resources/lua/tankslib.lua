@@ -6,25 +6,22 @@ local Drawing = java.import("tanks.Drawing")
 local Game = java.import("tanks.Game")
 
 function tanks.notify(message, duration)
-    ensureType("message", "string", message)
     Notification(message, NotificationType.INFO, duration or 200)
 end
 
 function tanks.playSound(sound, pitch)
-    ensureType("sound", "string", sound)
-
     Drawing.drawing:playSound(sound, pitch or 1)
 end
-
-
-tanks.isModApi = pcall(function()
-    java.import("tanks.ModAPI"):getDeclaredField("version")
-end)
 
 
 
 tanks.game = {}
 tanks.game.version = Game.version
+tanks.game.isModApi = pcall(function()
+    java.import("tanks.ModAPI"):getDeclaredField("version")
+end)
+
+
 tanks.game.tileSize = Game.tile_size
 
 function tanks.game.distance(a, b)
@@ -43,7 +40,6 @@ function tanks.game.getPlayerTank()
     return Game.playerTank
 end
 
-
 function tanks.game.playing()
     return
         java.import("tanks.gui.screen.ScreenGame").class:isInstance(Game.screen)
@@ -55,6 +51,8 @@ end
 function tanks.game.allied(a, b)
     return a.team ~= nil and b.team ~= nil and a.team == b.team
 end
+
+
 
 tanks.input = {}
 
@@ -68,8 +66,6 @@ for _, field in pairs(
 end
 
 function tanks.input.keyHeld(keyToCheck)
-    ensureType("keyToCheck", "number", keyToCheck)
-
     local keys = java.luaify(Game.game.window.validPressedKeys)
     for _, key in pairs(keys) do
         if key == keyToCheck then return true end
@@ -78,8 +74,6 @@ function tanks.input.keyHeld(keyToCheck)
 end
 
 function tanks.input.mouseButtonHeld(buttonToCheck)
-    ensureType("buttonToCheck", "number", buttonToCheck)
-
     local buttons = java.luaify(Game.game.window.validPressedButtons)
     for _, button in pairs(buttons) do
         if button == buttonToCheck then return true end
@@ -97,10 +91,6 @@ tanks.drawing.objXSpace = Drawing.drawing.objXSpace
 tanks.drawing.objYSpace = Drawing.drawing.objYSpace
 
 function tanks.drawing.color(r, g, b, a)
-    ensureType("r", "number", r)
-    ensureType("g", "number", g)
-    ensureType("b", "number", b)
-
     if not a then
         Drawing.drawing:setColor(r, g, b)
         return
@@ -109,67 +99,92 @@ function tanks.drawing.color(r, g, b, a)
 end
 
 
-function tanks.drawing.oval(x, y, width, height, forInterface, mode)
-    ensureType("x", "number", x)
-    ensureType("y", "number", y)
-    ensureType("width", "number", width)
-    ensureType("height", "number", height)
-    ensureType("forInterface", "boolean", forInterface)
-    ensureType("mode", "string", mode)
-
-
-    if forInterface then
-        if mode == "fill" then
+function tanks.drawing.oval(x, y, width, height, drawMode, coordinateMode)
+    if coordinateMode == "interface" then
+        if drawMode == "fill" then
             Drawing.drawing:fillInterfaceOval(x, y, width, height)
-        elseif mode == "line" then
+        elseif drawMode == "line" then
             Drawing.drawing:drawInterfaceOval(x, y, width, height)
         end
         return
     end
 
-    if mode == "fill" then
-        Drawing.drawing:fillOval(x, y, width, height)
-    elseif mode == "line" then
-        Drawing.drawing:drawOval(x, y, width, height)
+    if coordinateMode == "game" then
+        if drawMode == "fill" then
+            Drawing.drawing:fillOval(x, y, width, height)
+        elseif drawMode == "line" then
+            Drawing.drawing:drawOval(x, y, width, height)
+        end
+        return
     end
 end
 
-function tanks.drawing.fontSize(newSize, forInterface)
+function tanks.drawing.rect(x, y, width, height, drawMode, coordinateMode)
+    if coordinateMode == "interface" then
+        if drawMode == "fill" then
+            Drawing.drawing:fillInterfaceRect(x, y, width, height)
+        elseif drawMode == "line" then
+            Drawing.drawing:drawInterfaceRect(x, y, width, height)
+        end
+        return
+    end
+
+    if coordinateMode == "game" then
+        if drawMode == "fill" then
+            Drawing.drawing:fillRect(x, y, width, height)
+        elseif drawMode == "line" then
+            Drawing.drawing:drawRect(x, y, width, height)
+        end
+        return
+    end
+end
+
+function tanks.drawing.fontSize(newSize, coordinateMode)
     if not newSize then -- get
-        if forInterface then
+        if coordinateMode == "interface" then
             return Drawing.drawing.fontSize / 36.0 * Drawing.drawing.interfaceScale
         end
-        return Drawing.drawing.fontSize
+        if coordinateMode == "game" then
+            return Drawing.drawing.fontSize
+        end
+        return nil
     end
 
     -- set
-    if forInterface then
+    if coordinateMode == "interface" then
         Drawing.drawing:setInterfaceFontSize(newSize)
         return
     end
-    Drawing.drawing:setFontSize(newSize)
+    if coordinateMode == "game" then
+        Drawing.drawing:setFontSize(newSize)
+        return
+    end
+
+    return nil
 end
 
-function tanks.drawing.text(x, y, text, forInterface)
-    ensureType("x", "number", x)
-    ensureType("y", "number", y)
-    ensureType("text", "string", text)
-
-    if forInterface then
+function tanks.drawing.text(x, y, text, coordinateMode)
+    if coordinateMode == "interface" then
         Drawing.drawing:drawInterfaceText(x, y, text)
         return
     end
 
-    Drawing.drawing:drawText(x, y, text)
+    if coordinateMode == "game" then
+        Drawing.drawing:drawText(x, y, text)
+        return
+    end
 end
 
-function tanks.drawing.size(forInterface)
-    if forInterface then
+function tanks.drawing.size(coordinateMode)
+    if coordinateMode == "interface" then
         return Drawing.drawing.interfaceSizeX, Drawing.drawing.interfaceSizeY
     end
 
-    return Drawing.drawing.sizeX, Drawing.drawing.sizeY
+    if coordinateMode == "game" then
+        return Drawing.drawing.sizeX, Drawing.drawing.sizeY
+    end
 end
+
 
 
 tanks.multiplayer = {}
