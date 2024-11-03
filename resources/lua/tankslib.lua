@@ -21,10 +21,10 @@ tanks.isModApi = pcall(function()
     java.import("tanks.ModAPI"):getDeclaredField("version")
 end)
 
-tanks.version = Game.version
+
 
 tanks.game = {}
-
+tanks.game.version = Game.version
 tanks.game.tileSize = Game.tile_size
 
 function tanks.game.distance(a, b)
