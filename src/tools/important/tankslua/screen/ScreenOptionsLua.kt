@@ -63,16 +63,15 @@ class ScreenOptionsLua : Screen() {
         centerY - objYSpace*0.5,
         objWidth,
         objHeight,
-        "TanksLua files",
+        "   Open TanksLua folder", // The text will overlap with the folder icon without the spaces at the beginning
     ) {
         verifyDirectoryStructure()
         openFileManagerTo(tanksLuaDir)
     } .apply {
-        val imgsize = 25.0 * Drawing.drawing.interfaceScaleZoom
-        image = "icons/link.png"
-        imageSizeX = imgsize
-        imageSizeY = imgsize
-        imageXOffset = 145.0 * sizeX / 350.0
+        image = "icons/folder.png"
+        imageSizeX = objHeight * 0.75
+        imageSizeY = objHeight * 0.75
+        imageXOffset = -objWidth / 2.0 + imageSizeX
     }
 
     override fun update() {
