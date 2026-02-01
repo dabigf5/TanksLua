@@ -47,10 +47,15 @@ class EvalBox {
             }
 
             val function: LuaValue = luaState.get()
-            try {
+
+            lastEvalResult = try {
                 val results = function.call()
-                lastEvalResult = luaState.get("tostring")
-                    .call(results.getOrNull(0))[0].toString()
+
+                if (results.size > 0) {
+                    results[0].toString()
+                } else {
+                    "<no return>"
+                }
             } catch (e: LuaException) {
                 Notification("Your code ran into an issue running: ${e.message}", NotificationType.ERR)
                 return
