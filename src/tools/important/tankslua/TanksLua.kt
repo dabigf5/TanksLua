@@ -80,7 +80,7 @@ class TanksLuaOptions {
 }
 
 object TanksLua {
-    const val VERSION = "TanksLua 0.4.0"
+    const val VERSION = "TanksLua 0.4.1"
 
     lateinit var extension: TanksLuaExtension
     lateinit var evalBox: EvalBox
