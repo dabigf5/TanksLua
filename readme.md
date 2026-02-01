@@ -4,6 +4,9 @@ TanksLua is an extension for Tanks: The Crusades which enables Lua scripting thr
 Please note that this extension is quite early in development, and highly subject to change.
 
 ## Features
+### Eval Box
+A toggleable text box which lets you evaluate Lua code for debugging purposes.
+
 ### Level Scripts
 Level Scripts are directories or zip archives containing script files or assets, with a necessary `level.lua` script which specifies the Lua callbacks for whenever the level is loaded, updated, drawn, etc.
 
